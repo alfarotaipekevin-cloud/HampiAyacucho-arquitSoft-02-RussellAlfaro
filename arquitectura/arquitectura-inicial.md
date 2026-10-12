@@ -58,3 +58,13 @@ Citas -.-> Mensajeria
 HCE -.-> RENHICE
 Referencias -.-> RENHICE
 ```
+
+
+## Descripción de la Arquitectura
+La arquitectura inicial de **Hampi Ayacucho** se organiza en tres capas principales:
+
+- **Presentación:** canaliza toda la interacción mediante la plataforma web unificada (portal ciudadano y paneles clínicos para el personal de salud) comunicándose a través de una API REST.
+- **Lógica de Negocio:** concentra los módulos de procesamiento del dominio sanitario: Usuarios & Autenticación, Citas & Turnos (fichas digitales QR), Historia Clínica Electrónica (HCE), Referencias & Contrarreferencias e Indicadores para GERESA.
+- **Datos:** garantiza la persistencia relacional íntegra de registros médicos mediante la base de datos principal, complementada con una capa de caché en memoria para optimizar la consulta de disponibilidad de citas.
+
+Además, los módulos de la capa de negocio se integran de forma desacoplada con sistemas externos: la **PIDE (RENIEC)** para la verificación de identidad ciudadana, el **RENHICE (MINSA)** para la interoperabilidad de historias clínicas y el **servicio de mensajería** para notificaciones automáticas vía SMS y correo.
