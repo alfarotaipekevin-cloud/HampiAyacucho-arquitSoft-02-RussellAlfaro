@@ -16,7 +16,7 @@
 | :--- | :--- | :--- |
 | **Entities (Dominio)** | Reglas de negocio fundamentales. | `Paciente`, `Cita`, `HistoriaClinica`, `Referencia`, `Establecimiento`. |
 | **Use Cases (Aplicación)** | Reglas específicas de la aplicación; orquestan el dominio. | `ConsultarDisponibilidad`, `ReservarCita`, `RegistrarAtencion`, `EmitirReferencia`, `GenerarReporteMINSA`. |
-| **Interface Adapters** | Adaptan datos entre el núcleo y el exterior. | Controllers REST, DTOs, mappers, repositorios PostgreSQL, adaptadores PIDE/RENHICE. |
+| **Interface Adapters** | Adaptan datos entre el núcleo y el exterior. | Controllers REST, DTOs (presentación); repositorios PostgreSQL/Redis y adaptadores PIDE/RENHICE/SMS (infraestructura). |
 | **Frameworks & Drivers** | Detalles tecnológicos externos. | Angular, Node.js + Express, PostgreSQL, Redis, APIs PIDE y RENHICE, proveedor SMS. |
 
 ## 3. Reglas de negocio del dominio (ejemplos)
@@ -28,79 +28,9 @@
 
 ## 4. Diagrama de Clean Architecture
 
-```mermaid
-flowchart LR
-    U["Usuario<br/>(navegador)"]
+![Clean Architecture aplicada a Hampi Ayacucho](../../img/clean-architecture-hampi.png)
 
-    subgraph APPWEB["«aplicación» Hampi Ayacucho"]
-        direction LR
-
-        subgraph PRES["Adaptadores de entrada · Presentación"]
-            direction TB
-            C1["CitasController"]
-            C2["HceController"]
-            C3["ReferenciasController"]
-            DTO["DTOs · Mappers"]
-        end
-
-        subgraph APP["Aplicación · Casos de uso"]
-            direction TB
-            UC1["ConsultarDisponibilidad"]
-            UC2["ReservarCita"]
-            UC3["RegistrarAtencion"]
-            UC4["EmitirReferencia"]
-        end
-
-        subgraph DOM["Dominio · núcleo (no depende de nada)"]
-            direction TB
-            subgraph ENT["Entidades y reglas"]
-                E1["Paciente"]
-                E2["Cita"]
-                E3["HistoriaClinica"]
-                E4["Referencia"]
-            end
-            subgraph PORT["Contratos (interfaces)"]
-                I1["RepositorioCitas"]
-                I2["RepositorioHCE"]
-                I3["ValidadorIdentidad"]
-                I4["RepositorioNacionalHCE"]
-                I5["Notificador"]
-            end
-        end
-
-        subgraph INF["Adaptadores de salida · Infraestructura"]
-            direction TB
-            A1["CitasPostgresRepository"]
-            A2["HcePostgresRepository"]
-            A3["PideAdapter"]
-            A4["RenhiceAdapter"]
-            A5["SmsNotificadorAdapter"]
-            A6["DisponibilidadRedisCache"]
-        end
-
-        COMP["Raíz de composición · container.ts<br/>inyecta cada adaptador en su contrato"]
-    end
-
-    PG[("PostgreSQL")]
-    RD[("Redis")]
-    PIDE["PIDE / RENIEC"]
-    REN["RENHICE / MINSA"]
-    SMS["Proveedor SMS / correo"]
-
-    U -- "HTTPS / JSON" --> PRES
-    PRES --> APP
-    APP --> DOM
-    INF -. "implementa" .-> PORT
-    COMP -.-> INF
-    COMP -.-> APP
-
-    A1 --> PG
-    A2 --> PG
-    A6 --> RD
-    A3 --> PIDE
-    A4 --> REN
-    A5 --> SMS
-```
+> Fuente editable: `img/fuentes/clean-architecture-hampi.mmd` (Mermaid)
 
 **Leyenda:** flecha continua = dependencia de código (siempre hacia el centro); flecha punteada = implementa un contrato del dominio o lo inyecta (inversión de dependencias).
 
@@ -127,28 +57,24 @@ hampi-ayacucho/
 └── src/
     ├── modules/
     │   ├── citas/
-    │   │   ├── domain/
-    │   │   │   ├── entities/          # Cita.ts, Cupo.ts
-    │   │   │   ├── value-objects/     # Dni.ts, CodigoQR.ts
-    │   │   │   └── ports/             # RepositorioCitas.ts, Notificador.ts
-    │   │   ├── application/
-    │   │   │   └── use-cases/         # ConsultarDisponibilidad.ts, ReservarCita.ts, CancelarCita.ts
-    │   │   ├── adapters/
-    │   │   │   ├── controllers/       # CitasController.ts
-    │   │   │   └── dto/               # ReservarCitaDTO.ts
-    │   │   └── infrastructure/
-    │   │       ├── repositories/      # CitasPostgresRepository.ts
-    │   │       ├── cache/             # DisponibilidadRedisCache.ts
-    │   │       └── gateways/          # SmsNotificadorAdapter.ts
+    │   │   ├── dominio/               # cita.ts, cupo.ts, dni.ts, estado-cita.ts + puertos (interfaces)
+    │   │   ├── aplicacion/            # reservar-cita.use-case.ts, cancelar-cita.use-case.ts
+    │   │   ├── infraestructura/       # citas-postgres.repository.ts, cupos-redis-cache.repository.ts,
+    │   │   │                          # pide.adapter.ts, sms-notificador.adapter.ts
+    │   │   ├── presentacion/          # citas.controller.ts, citas.routes.ts
+    │   │   ├── citas.module.ts        # raíz de composición del módulo
+    │   │   └── index.ts               # API pública del módulo
     │   ├── usuarios/                  # misma estructura · PideAdapter
     │   ├── hce/                       # misma estructura · RenhiceAdapter
     │   ├── referencias/
-    │   └── reportes/
-    ├── shared/                        # middlewares, auth JWT + 2FA, auditoría, logger
-    ├── config/
-    │   └── container.ts               # raíz de composición (inyección de dependencias)
+    │   ├── reportes/
+    │   ├── notificaciones/
+    │   └── auditoria/
+    ├── shared/                        # middlewares, auth JWT + 2FA, errores, logger
     └── server.ts                      # arranque de Express
 ```
+
+> Detalle archivo por archivo en `docs/03-diseño-de-software/diseño-interno/diseño-interno-de-modulos.md`. Un ejemplo ejecutable del módulo Citas está en `tecnologia/boilerplate-clean-arquitecture/`.
 
 ## 8. Relación con el estilo arquitectónico
 - El **estilo** (monolito modular en capas) define cómo se organiza y despliega el sistema **globalmente**.

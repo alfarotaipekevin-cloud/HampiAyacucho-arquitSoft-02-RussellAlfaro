@@ -1,0 +1,46 @@
+flowchart TD
+subgraph ACTORES["ACTORES"]
+    Paciente["Paciente"]
+    PersonalSalud["Personal de Salud"]
+    AdminGERESA["Especialista / Admin GERESA"]
+end
+
+subgraph PRESENTACION["CAPA DE PRESENTACIÓN"]
+    Web["Plataforma Web (Portal y Paneles Clínicos)"]
+    API["API REST Controllers"]
+    Web --> API
+end
+
+subgraph NEGOCIO["CAPA DE LÓGICA DE NEGOCIO"]
+    Usuarios["Módulo Usuarios & Autenticación"]
+    Citas["Módulo Citas & Turnos (QR)"]
+    HCE["Módulo Historia Clínica Electrónica"]
+    Referencias["Módulo Referencias & Contrarreferencias"]
+    Reportes["Módulo Indicadores & Reportes GERESA"]
+end
+
+subgraph DATOS["CAPA DE DATOS"]
+    BD[("Base de Datos Relacional")]
+    Cache[("Caché en Memoria")]
+end
+
+subgraph EXTERNOS["SISTEMAS EXTERNOS"]
+    PIDE["PIDE / RENIEC (Validación DNI)"]
+    RENHICE["RENHICE - MINSA (Historias Clínicas)"]
+    Mensajeria["Servicio de Mensajería (SMS / Notificaciones)"]
+end
+
+ACTORES --> PRESENTACION
+API --> NEGOCIO
+
+Usuarios --> BD
+Citas --> BD
+Citas --> Cache
+HCE --> BD
+Referencias --> BD
+Reportes --> BD
+
+Usuarios -.-> PIDE
+Citas -.-> Mensajeria
+HCE -.-> RENHICE
+Referencias -.-> RENHICE

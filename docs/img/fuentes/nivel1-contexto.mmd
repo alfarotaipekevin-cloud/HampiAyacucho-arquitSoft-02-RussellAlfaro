@@ -1,0 +1,27 @@
+flowchart TB
+    PAC["<b>Paciente</b><br/>[Persona]<br/>Busca y reserva citas,<br/>obtiene su ficha QR"]
+    PS["<b>Personal de Salud</b><br/>[Persona]<br/>Registra atenciones y<br/>emite referencias"]
+    EG["<b>Especialista GERESA</b><br/>[Persona]<br/>Supervisa la red y<br/>genera reportes MINSA"]
+    ADM["<b>Administrador</b><br/>[Persona]<br/>Gestiona accesos,<br/>roles y auditoría"]
+
+    HAMPI["<b>Hampi Ayacucho</b><br/>[Sistema de software]<br/>Plataforma regional de citas, historia clínica<br/>electrónica y referencias de la red de salud"]
+
+    PIDE["<b>PIDE / RENIEC</b><br/>[Sistema externo]<br/>Valida la identidad (DNI)"]
+    REN["<b>RENHICE - MINSA</b><br/>[Sistema externo]<br/>Registro nacional de<br/>historias clínicas"]
+    MSG["<b>Servicio de mensajería</b><br/>[Sistema externo]<br/>Envía SMS y correos"]
+
+    PAC -- "Reserva citas y<br/>descarga su ficha" --> HAMPI
+    PS -- "Registra atenciones<br/>y referencias" --> HAMPI
+    EG -- "Consulta indicadores<br/>y reportes" --> HAMPI
+    ADM -- "Administra usuarios<br/>y auditoría" --> HAMPI
+    HAMPI -- "Valida DNI<br/>[HTTPS/REST]" --> PIDE
+    HAMPI -- "Intercambia HCE<br/>[HTTPS/REST]" --> REN
+    HAMPI -- "Envía notificaciones<br/>[HTTPS/REST]" --> MSG
+    MSG -. "SMS / correo" .-> PAC
+
+    classDef person fill:#08427b,stroke:#052e56,color:#ffffff
+    classDef system fill:#1168bd,stroke:#0b4884,color:#ffffff
+    classDef external fill:#999999,stroke:#6b6b6b,color:#ffffff
+    class PAC,PS,EG,ADM person
+    class HAMPI system
+    class PIDE,REN,MSG external

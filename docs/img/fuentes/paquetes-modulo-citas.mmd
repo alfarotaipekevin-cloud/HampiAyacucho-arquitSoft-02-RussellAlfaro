@@ -1,0 +1,40 @@
+flowchart LR
+    subgraph PRES["presentacion/"]
+        CTRL["citas.controller.ts"]
+        RUT["citas.routes.ts"]
+    end
+    subgraph APP["aplicacion/"]
+        UC["reservar-cita.use-case.ts"]
+        CMD["reservar-cita.command.ts"]
+    end
+    subgraph DOM["dominio/ (no depende de nada)"]
+        ENT["cita.ts · cupo.ts · dni.ts<br/>estado-cita.ts"]
+        PORT["repositorio-citas.ts · repositorio-cupos.ts<br/>validador-identidad.ts · notificador.ts"]
+    end
+    subgraph INF["infraestructura/"]
+        PG["citas-postgres.repository.ts"]
+        RD["cupos-redis-cache.repository.ts"]
+        PI["pide.adapter.ts"]
+        SMS["sms-notificador.adapter.ts"]
+    end
+    COMP["citas.module.ts<br/>(raíz de composición)"]
+    IDX["index.ts<br/>(API pública del módulo)"]
+
+    RUT --> CTRL --> UC
+    UC --> CMD
+    UC --> ENT
+    UC --> PORT
+    PORT --> ENT
+    PG -. "implementa" .-> PORT
+    RD -. "implementa" .-> PORT
+    PI -. "implementa" .-> PORT
+    SMS -. "implementa" .-> PORT
+    COMP --> PRES
+    COMP --> APP
+    COMP --> INF
+    IDX --> COMP
+
+    style DOM fill:#fde2e1,stroke:#c0504d,color:#222
+    style APP fill:#fff2cc,stroke:#d6b656,color:#222
+    style PRES fill:#dae8fc,stroke:#6c8ebf,color:#222
+    style INF fill:#d5e8d4,stroke:#82b366,color:#222

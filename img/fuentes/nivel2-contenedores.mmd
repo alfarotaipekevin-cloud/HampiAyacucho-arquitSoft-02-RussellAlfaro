@@ -1,0 +1,33 @@
+flowchart TB
+    USR["<b>Paciente · Personal de Salud ·<br/>Especialista GERESA · Administrador</b><br/>[Personas]"]
+
+    subgraph HAMPI["Hampi Ayacucho [Sistema de software]"]
+        direction TB
+        WEB["<b>Aplicación web</b><br/>[Contenedor: SPA Angular]<br/>Portal del paciente, paneles clínicos<br/>y panel GERESA. Español y quechua"]
+        API["<b>API Hampi</b><br/>[Contenedor: Node.js + Express + TypeScript]<br/>Monolito modular: expone la API REST /api/v1,<br/>aplica las reglas de negocio e integra externos"]
+        DB[("<b>Base de datos principal</b><br/>[Contenedor: PostgreSQL]<br/>Pacientes, citas, HCE,<br/>referencias, auditoría")]
+        DBR[("<b>Réplica de lectura</b><br/>[Contenedor: PostgreSQL]<br/>Consultas de reportes<br/>e indicadores")]
+        CACHE[("<b>Caché</b><br/>[Contenedor: Redis]<br/>Cupos y horarios<br/>disponibles")]
+    end
+
+    PIDE["<b>PIDE / RENIEC</b><br/>[Sistema externo]"]
+    REN["<b>RENHICE - MINSA</b><br/>[Sistema externo]"]
+    MSG["<b>Servicio de mensajería</b><br/>[Sistema externo]"]
+
+    USR -- "Usa<br/>[HTTPS]" --> WEB
+    WEB -- "Llama a la API<br/>[HTTPS/JSON + JWT]" --> API
+    API -- "Lee y escribe<br/>[SQL/TCP]" --> DB
+    DB -. "Replica<br/>[streaming]" .-> DBR
+    API -- "Lee reportes<br/>[SQL/TCP]" --> DBR
+    API -- "Lee y escribe cupos<br/>[TCP]" --> CACHE
+    API -- "Valida DNI<br/>[HTTPS/REST]" --> PIDE
+    API -- "Intercambia HCE<br/>[HTTPS/REST]" --> REN
+    API -- "Envía SMS/correo<br/>[HTTPS/REST]" --> MSG
+
+    classDef person fill:#08427b,stroke:#052e56,color:#ffffff
+    classDef container fill:#438dd5,stroke:#2e6295,color:#ffffff
+    classDef external fill:#999999,stroke:#6b6b6b,color:#ffffff
+    class USR person
+    class WEB,API,DB,DBR,CACHE container
+    class PIDE,REN,MSG external
+    style HAMPI fill:#ffffff,stroke:#444444,stroke-dasharray:6 4,color:#222222

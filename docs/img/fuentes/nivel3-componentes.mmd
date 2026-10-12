@@ -1,0 +1,52 @@
+flowchart TB
+    WEB["<b>Aplicación web</b><br/>[Contenedor: SPA Angular]"]
+
+    subgraph API["API Hampi [Contenedor: Node.js + Express · monolito modular]"]
+        direction TB
+        REST["<b>API REST</b><br/>[Componente: rutas + middlewares]<br/>/api/v1 · JWT + 2FA · RBAC ·<br/>validación · manejo de errores"]
+        subgraph MOD["Módulos de negocio"]
+            direction TB
+            USU["<b>Usuarios</b><br/>[Componente: módulo]<br/>Registro, login, 2FA, roles"]
+            CIT["<b>Citas</b><br/>[Componente: módulo]<br/>Cupos, reserva, ficha QR"]
+            HCE["<b>Historia Clínica</b><br/>[Componente: módulo]<br/>Atenciones, diagnósticos"]
+            REF["<b>Referencias</b><br/>[Componente: módulo]<br/>Derivación y<br/>contrarreferencia"]
+            REP["<b>Reportes</b><br/>[Componente: módulo]<br/>Dashboard e<br/>indicadores MINSA"]
+            NOT["<b>Notificaciones</b><br/>[Componente: módulo]<br/>Avisos al paciente"]
+            AUD["<b>Auditoría</b><br/>[Componente: módulo]<br/>Bitácora de accesos"]
+        end
+        REST -- "Invoca casos de uso<br/>[llamada en memoria]" --> CIT
+        REST --> USU
+        REST --> HCE
+        REST --> REF
+        REST --> REP
+        CIT -- "Valida paciente" --> USU
+        REF -- "Adjunta antecedentes" --> HCE
+        REF -- "Programa turno<br/>del referido" --> CIT
+        CIT -. "Publica cita<br/>reservada/cancelada" .-> NOT
+        REF -. "Publica estado<br/>de referencia" .-> NOT
+        HCE -. "Registra acceso" .-> AUD
+    end
+
+    DB[("<b>Base de datos principal</b><br/>[Contenedor: PostgreSQL]")]
+    DBR[("<b>Réplica de lectura</b><br/>[Contenedor: PostgreSQL]")]
+    CACHE[("<b>Caché</b><br/>[Contenedor: Redis]")]
+    PIDE["<b>PIDE / RENIEC</b><br/>[Sistema externo]"]
+    REN["<b>RENHICE - MINSA</b><br/>[Sistema externo]"]
+    MSG["<b>Servicio de mensajería</b><br/>[Sistema externo]"]
+
+    WEB -- "Llama a la API<br/>[HTTPS/JSON]" --> REST
+    MOD -- "Cada módulo lee y escribe<br/>solo sus tablas [SQL]" --> DB
+    REP -- "Consulta [SQL]" --> DBR
+    CIT -- "Cachea cupos [TCP]" --> CACHE
+    USU -- "Valida DNI<br/>[HTTPS/REST]" --> PIDE
+    HCE -- "Sincroniza HCE<br/>[HTTPS/REST]" --> REN
+    NOT -- "Envía SMS/correo<br/>[HTTPS/REST]" --> MSG
+
+    classDef container fill:#438dd5,stroke:#2e6295,color:#ffffff
+    classDef component fill:#85bbf0,stroke:#5d82a8,color:#0b2540
+    classDef external fill:#999999,stroke:#6b6b6b,color:#ffffff
+    class WEB,DB,DBR,CACHE container
+    class REST,USU,CIT,HCE,REF,REP,NOT,AUD component
+    class PIDE,REN,MSG external
+    style API fill:#ffffff,stroke:#444444,stroke-dasharray:6 4,color:#222222
+    style MOD fill:#f4f8fc,stroke:#8aa6c1,stroke-dasharray:3 3,color:#222222

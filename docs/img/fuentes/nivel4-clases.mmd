@@ -1,0 +1,91 @@
+classDiagram
+    direction LR
+    namespace Presentacion {
+        class CitasController {
+            -reservarCita: ReservarCitaUseCase
+            +reservar(req, res) Promise~void~
+        }
+    }
+    namespace Aplicacion {
+        class ReservarCitaUseCase {
+            -citas: RepositorioCitas
+            -cupos: RepositorioCupos
+            -identidad: ValidadorIdentidad
+            -notificador: Notificador
+            +ejecutar(cmd: ReservarCitaCommand) Promise~CitaReservada~
+        }
+        class ReservarCitaCommand {
+            +dni: string
+            +cupoId: string
+        }
+    }
+    namespace Dominio {
+        class Cita {
+            -id: string
+            -dniPaciente: Dni
+            -cupo: Cupo
+            -estado: EstadoCita
+            -codigoQR: string
+            +reservar(dni, cupo, yaTieneCitaEseDia)$ Cita
+            +cancelar() void
+            +confirmarAsistencia() void
+        }
+        class Cupo {
+            +id: string
+            +especialidad: string
+            +establecimiento: string
+            +fechaHora: Date
+            -disponible: boolean
+            +ocupar() void
+            +liberar() void
+        }
+        class Dni {
+            +valor: string
+        }
+        class EstadoCita {
+            <<enumeration>>
+            RESERVADA
+            ATENDIDA
+            CANCELADA
+            NO_ASISTIO
+        }
+        class RepositorioCitas {
+            <<interface>>
+            +guardar(cita) Promise~void~
+            +existeEnEspecialidadYDia(dni, cupo) Promise~boolean~
+        }
+        class RepositorioCupos {
+            <<interface>>
+            +buscarPorId(id) Promise~Cupo~
+            +guardar(cupo) Promise~void~
+        }
+        class ValidadorIdentidad {
+            <<interface>>
+            +validar(dni) Promise~boolean~
+        }
+        class Notificador {
+            <<interface>>
+            +citaReservada(cita) Promise~void~
+        }
+    }
+    namespace Infraestructura {
+        class CitasPostgresRepository
+        class CuposRedisCacheRepository
+        class PideAdapter
+        class SmsNotificadorAdapter
+    }
+
+    CitasController --> ReservarCitaUseCase
+    CitasController ..> ReservarCitaCommand : crea
+    ReservarCitaUseCase --> RepositorioCitas
+    ReservarCitaUseCase --> RepositorioCupos
+    ReservarCitaUseCase --> ValidadorIdentidad
+    ReservarCitaUseCase --> Notificador
+    ReservarCitaUseCase ..> Cita : crea
+    Cita *-- Dni
+    Cita --> Cupo
+    Cita --> EstadoCita
+    CitasPostgresRepository ..|> RepositorioCitas
+    CuposRedisCacheRepository ..|> RepositorioCupos
+    PideAdapter ..|> ValidadorIdentidad
+    SmsNotificadorAdapter ..|> Notificador

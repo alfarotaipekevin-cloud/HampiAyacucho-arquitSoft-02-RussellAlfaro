@@ -1,0 +1,33 @@
+sequenceDiagram
+    autonumber
+    actor P as Paciente (Aplicación web)
+    participant C as CitasController
+    participant UC as ReservarCitaUseCase
+    participant VI as ValidadorIdentidad<br/>(PideAdapter)
+    participant RC as RepositorioCupos<br/>(Redis + PostgreSQL)
+    participant CI as Cita
+    participant R as RepositorioCitas<br/>(PostgreSQL)
+    participant N as Notificador<br/>(SmsNotificadorAdapter)
+    participant PIDE as PIDE / RENIEC
+
+    P->>C: POST /api/v1/citas {dni, cupoId} + JWT
+    C->>UC: ejecutar(cmd)
+    UC->>VI: validar(dni)
+    VI->>PIDE: Consulta DNI [HTTPS]
+    PIDE-->>VI: DNI válido
+    VI-->>UC: true
+    UC->>RC: buscarPorId(cupoId)
+    RC-->>UC: cupo
+    UC->>R: existeEnEspecialidadYDia(dni, cupo)
+    R-->>UC: false
+    UC->>CI: Cita.reservar(dni, cupo, existe)
+    Note over CI: RN-01 cupo disponible<br/>RN-02 sin duplicado<br/>estado RESERVADA + QR
+    UC->>R: guardar(cita)
+    UC->>RC: guardar(cupo ocupado) e invalidar caché
+    UC->>N: citaReservada(cita)
+    UC-->>C: {citaId, codigoQR}
+    C-->>P: 201 Created + ficha QR
+    alt DNI inválido o cupo ocupado
+        UC-->>C: ReglaNegocioError
+        C-->>P: 409 Conflict con el motivo
+    end
