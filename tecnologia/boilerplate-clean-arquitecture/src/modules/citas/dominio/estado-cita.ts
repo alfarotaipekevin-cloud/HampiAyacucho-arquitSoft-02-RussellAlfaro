@@ -1,6 +1,0 @@
-export enum EstadoCita {
-  RESERVADA = 'RESERVADA',
-  ATENDIDA = 'ATENDIDA',
-  CANCELADA = 'CANCELADA',
-  NO_ASISTIO = 'NO_ASISTIO',
-}
