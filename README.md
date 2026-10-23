@@ -21,7 +21,9 @@ Docente: Ing. Lizbeth Jaico Quispe
 │   ├── 02-arquitectura-software/    Arquitectura inicial, estilo, enfoque y componentes
 │   ├── 03-diseño-de-software/
 │   │   └── diseño-interno/          Diseño interno de módulos, patrones y principios SOLID
-│   └── 04-modelo-c4/                Niveles 1 a 4 del modelo C4
+│   ├── 04-modelo-c4/                Niveles 1 a 4 del modelo C4
+│   ├── 05-desarrollo-sdd/           Constitución SDD y especificaciones (specs) del módulo de citas
+│   └── 06-scrum/                    Roadmap y despliegue, product backlog, DoR/DoD y sprints
 ├── img/                             Diagramas (PNG) y sus fuentes editables en img/fuentes (Mermaid)
 └── tecnologia/
     └── boilerplate-clean-arquitecture/   Ejemplo ejecutable del módulo Citas con Clean Architecture
@@ -64,6 +66,24 @@ Docente: Ing. Lizbeth Jaico Quispe
 | C2 · Contenedores | [Nivel2-DiagramadeContenedores.md](docs/04-modelo-c4/Nivel2-DiagramadeContenedores.md) |
 | C3 · Componentes | [Nivel3-Diagrama-de-Componentes.md](docs/04-modelo-c4/Nivel3-Diagrama-de-Componentes.md) |
 | C4 · Código | [Nivel4-DiagramadeCodigo.md](docs/04-modelo-c4/Nivel4-DiagramadeCodigo.md) |
+
+### 5. Desarrollo guiado por especificaciones (SDD)
+
+Alcance actual: **módulo de reserva de citas** y acceso al portal.
+
+| Documento | Contenido |
+| :--- | :--- |
+| [00-constitucion.md](docs/05-desarrollo-sdd/00-constitucion.md) | Proceso SDD, principios, stack y convenciones |
+| [Índice de specs](docs/05-desarrollo-sdd/README.md) | 001 APIs simuladas · 002 Identidad · 003 Portal · 004 Disponibilidad · 005 Reserva y ficha QR |
+
+### 6. Scrum
+
+| Documento | Contenido |
+| :--- | :--- |
+| [00-roadmap-y-despliegue.md](docs/06-scrum/00-roadmap-y-despliegue.md) | Secuencia de sprints, arquitectura de despliegue y opciones de nube |
+| [01-product-backlog.md](docs/06-scrum/01-product-backlog.md) | Backlog priorizado (MoSCoW) y trazabilidad HU → RF → spec |
+| [02-definicion-de-listo-y-terminado.md](docs/06-scrum/02-definicion-de-listo-y-terminado.md) | Definition of Ready y Definition of Done |
+| [Sprint 0](docs/06-scrum/sprint-00/sprint-backlog.md) | Sprint backlog, review y retrospectiva |
 
 ## Stack tecnológico propuesto
 
