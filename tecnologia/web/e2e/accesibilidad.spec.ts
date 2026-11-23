@@ -67,6 +67,9 @@ test.describe('EQ-05 · Accesibilidad WCAG 2.1 AA', () => {
     await page.getByLabel('Contraseña', { exact: true }).fill('Hampi2026');
     await page.getByRole('button', { name: 'Ingresar' }).click();
     await expect(page.getByRole('heading', { name: '¿Qué quieres hacer hoy?' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Avance por servicio' })).toBeVisible();
+    const portal = await auditar(page, 'Portal del personal');
+    expect(portal.violations.filter((v) => v.impact === 'critical')).toEqual([]);
     await page.goto('/admision');
     await page.getByRole('button', { name: 'Pediatría' }).click();
     await expect(page.getByRole('heading', { name: 'Citas de hoy' })).toBeVisible();

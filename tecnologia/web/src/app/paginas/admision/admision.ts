@@ -1,5 +1,6 @@
 import { Component, ElementRef, OnDestroy, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { BarraPortal } from '../../componentes/barra-portal';
 import { LectorQr } from '../../componentes/lector-qr';
 import { AdmisionService } from '../../nucleo/admision.service';
@@ -24,6 +25,7 @@ const guardarServicio = (id: string | null) => { try { id ? localStorage.setItem
 })
 export class Admision implements OnDestroy {
   private readonly api = inject(AdmisionService);
+  private readonly ruta = inject(ActivatedRoute);
   private readonly campoCodigo = viewChild<ElementRef<HTMLInputElement>>('campoCodigo');
 
   protected readonly t = TEXTOS.admision;
@@ -71,7 +73,8 @@ export class Admision implements OnDestroy {
     try {
       const s = await this.api.servicios();
       this.servicios.set(s);
-      const guardado = s.especialidades.find((e) => e.id === leerServicio());
+      const pedido = this.ruta.snapshot.queryParamMap.get('servicio') ?? leerServicio();
+      const guardado = s.especialidades.find((e) => e.id === pedido);
       if (guardado) await this.elegirServicio(guardado);
     } catch (e) {
       this.error.set(mensajeDeError(e));

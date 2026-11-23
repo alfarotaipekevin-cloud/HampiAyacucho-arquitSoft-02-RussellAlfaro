@@ -8,8 +8,16 @@
         <p class="saludo">{{ t.saludo }} {{ u.nombre }} 👋</p>
       }
       <h1>{{ t.titulo }}</h1>
-      <p class="bajada">{{ esPaciente() ? t.bajadaPaciente : t.bajadaPersonal }}</p>
+      <p class="bajada">{{ esPaciente() ? t.bajadaPaciente : esPersonal() && establecimiento() ? establecimiento() : t.bajadaPersonal }}</p>
     </div>
+    @if (esPersonal()) {
+      <div class="acciones-rapidas">
+        <a routerLink="/admision" class="boton claro">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" /></svg>
+          {{ t.abrirAdmision }}
+        </a>
+      </div>
+    }
     @if (esPaciente()) {
       <div class="acciones-rapidas">
         <a routerLink="/citas/reservar" class="boton claro">
@@ -22,7 +30,7 @@
   </div>
 </section>
 
-<main class="contenido portal" [class.sin-resumen]="!esPaciente()">
+<main class="contenido portal" [class.sin-resumen]="!esPaciente() && !hoyPorServicio().length">
   @if (error()) {
     <p class="aviso error" role="alert">{{ error() }}</p>
   }
@@ -75,6 +83,50 @@
     </div>
   }
 
+  @if (esPersonal() && hoyPorServicio().length) {
+    <div class="resumen-personal">
+      <section class="tarjeta cifras-hoy" [attr.aria-label]="t.hoyTitulo">
+        <h2>{{ t.hoyTitulo }}</h2>
+        <div class="cifras-admision">
+          <div class="cifra-caja"><span class="numero">{{ totalesHoy().citas }}</span><span class="etiqueta">{{ t.hoyCitas }}</span></div>
+          <div class="cifra-caja"><span class="numero">{{ totalesHoy().porLlegar }}</span><span class="etiqueta">{{ textos.admision.resumen.porLlegar }}</span></div>
+          <div class="cifra-caja espera"><span class="numero">{{ totalesHoy().enEspera }}</span><span class="etiqueta">{{ textos.admision.resumen.enEspera }}</span></div>
+          <div class="cifra-caja"><span class="numero">{{ totalesHoy().atendidas }}</span><span class="etiqueta">{{ textos.admision.resumen.atendidas }}</span></div>
+        </div>
+        <h3 class="subtitulo-proximas">{{ t.proximasTitulo }}</h3>
+        @if (proximasLlegadas().length) {
+          <ul class="proximas-llegadas">
+            @for (c of proximasLlegadas(); track c.citaId) {
+              <li>
+                <a [routerLink]="['/admision']" [queryParams]="{ servicio: c.servicio.id }">
+                  <span class="hora-proxima">{{ hora(c.fechaHora) }}</span>
+                  <span class="quien"><strong>{{ c.paciente }}</strong><small>{{ c.servicio.nombre }} · {{ c.consultorio }}</small></span>
+                </a>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="sin-proximas">{{ t.sinProximas }}</p>
+        }
+      </section>
+
+      <section class="tarjeta por-servicio" [attr.aria-label]="t.porServicio">
+        <h2>{{ t.porServicio }}</h2>
+        <ul>
+          @for (h of hoyPorServicio(); track h.servicio.id) {
+            <li>
+              <a [routerLink]="['/admision']" [queryParams]="{ servicio: h.servicio.id }" class="fila-servicio" [class.vacia]="!activas(h.agenda)">
+                <span class="nombre-servicio">{{ h.servicio.nombre }}</span>
+                <span class="barra-avance" aria-hidden="true"><span [style.width.%]="avance(h.agenda)"></span></span>
+                <span class="detalle-servicio">@if (!activas(h.agenda)) { {{ t.sinCitasHoy }} } @else { {{ h.agenda.resumen.atendidas }}/{{ activas(h.agenda) }} {{ t.atendidasCorto }}@if (h.agenda.resumen.enEspera) { · <strong>{{ h.agenda.resumen.enEspera }} {{ t.enEsperaCorto }}</strong>} }</span>
+              </a>
+            </li>
+          }
+        </ul>
+      </section>
+    </div>
+  }
+
   <h2 class="seccion">{{ t.servicios }}</h2>
   <div class="modulos">
     @for (modulo of modulos(); track modulo.clave) {
@@ -116,6 +168,23 @@
       </article>
     }
   </div>
+
+  @if (esPersonal()) {
+    <section class="consejos" [attr.aria-label]="t.guiaTitulo">
+      <h2 class="seccion">{{ t.guiaTitulo }}</h2>
+      <ol class="guia-admision">
+        @for (paso of t.guia; track paso.titulo) {
+          <li class="tarjeta">
+            <span class="emoji" aria-hidden="true">{{ paso.icono }}</span>
+            <div>
+              <strong>{{ paso.titulo }}</strong>
+              <p class="suave">{{ paso.detalle }}</p>
+            </div>
+          </li>
+        }
+      </ol>
+    </section>
+  }
 
   @if (esPaciente()) {
     <section class="consejos" [attr.aria-label]="t.consejosTitulo">

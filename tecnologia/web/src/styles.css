@@ -1646,3 +1646,162 @@ h3.turno {
     padding: 8px 12px;
   }
 }
+
+/* Portal del personal de salud: resumen de hoy y guía de admisión */
+.resumen-personal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.resumen-personal h2 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--texto-suave);
+}
+.cifras-hoy .cifras-admision {
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+}
+.por-servicio ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.fila-servicio {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 9px 6px;
+  border-radius: 8px;
+  color: var(--texto);
+  text-decoration: none;
+}
+.fila-servicio:hover {
+  background: var(--verde-claro);
+}
+.nombre-servicio {
+  font-weight: 600;
+}
+.barra-avance {
+  height: 8px;
+  border-radius: 999px;
+  background: #e6eaec;
+  overflow: hidden;
+}
+.barra-avance span {
+  display: block;
+  height: 100%;
+  background: var(--verde);
+  border-radius: 999px;
+}
+.detalle-servicio {
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+  white-space: nowrap;
+}
+.detalle-servicio strong {
+  color: var(--verde-oscuro);
+}
+.guia-admision {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.guia-admision li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 16px;
+}
+.guia-admision .emoji {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+.guia-admision p {
+  margin: 4px 0 0;
+}
+@media (max-width: 900px) {
+  .resumen-personal {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 760px) {
+  .fila-servicio {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .fila-servicio .barra-avance {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+.fila-servicio.vacia .nombre-servicio,
+.fila-servicio.vacia .detalle-servicio {
+  color: var(--texto-suave);
+  font-weight: 500;
+}
+.fila-servicio.vacia .barra-avance {
+  opacity: 0.5;
+}
+@media (max-width: 1100px) {
+  .guia-admision {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 560px) {
+  .guia-admision {
+    grid-template-columns: 1fr;
+  }
+}
+
+.subtitulo-proximas {
+  margin: 20px 0 8px;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+.proximas-llegadas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.proximas-llegadas a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 6px;
+  border-radius: 8px;
+  color: var(--texto);
+  text-decoration: none;
+}
+.proximas-llegadas a:hover {
+  background: var(--verde-claro);
+}
+.proximas-llegadas li + li {
+  border-top: 1px solid #e8ecea;
+}
+.hora-proxima {
+  font-weight: 700;
+  color: var(--verde-oscuro, #0b6e4f);
+  min-width: 52px;
+}
+.proximas-llegadas .quien {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.proximas-llegadas .quien small {
+  color: var(--texto-suave);
+}
+.sin-proximas {
+  margin: 0;
+  color: var(--texto-suave);
+}
