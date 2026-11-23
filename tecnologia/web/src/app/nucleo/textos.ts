@@ -103,6 +103,13 @@ export const TEXTOS = {
   },
   reservar: {
     titulo: 'Reservar una cita',
+    bajada: 'Cuatro pasos y listo. Puedes volver atrás cuando quieras.',
+    pasoDe: 'Paso',
+    de: 'de',
+    tuSeleccion: 'Tu selección',
+    sinElegir: 'Sin elegir',
+    manana: 'Mañana',
+    tarde: 'Tarde',
     pasos: ['Especialidad', 'Establecimiento', 'Fecha y hora', 'Confirmar'],
     especialidad: 'Elige la especialidad',
     establecimiento: 'Elige el establecimiento',
@@ -143,6 +150,7 @@ export const TEXTOS = {
   },
   misCitas: {
     titulo: 'Mis citas',
+    bajada: 'Revisa tus citas reservadas, las anteriores y las canceladas.',
     vacio: 'Todavía no tienes citas reservadas.',
     reservar: 'Reservar una cita',
     verFicha: 'Ver la ficha',

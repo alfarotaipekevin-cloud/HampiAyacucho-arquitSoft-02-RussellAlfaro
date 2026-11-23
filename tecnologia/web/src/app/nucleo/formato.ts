@@ -31,3 +31,13 @@ export function fechaHoraCorta(iso: string): string {
 export const hora = (iso: string) => iso.slice(11, 16);
 
 export const esFutura = (iso: string) => new Date(iso).getTime() >= Date.now();
+
+/** '2026-11-05' → { semana: 'jue', dia: 5, mes: 'nov' } (para los botones tipo calendario) */
+export function partesDelDia(fecha: string): { semana: string; dia: number; mes: string } {
+  const { anio, mes, dia } = partes(fecha);
+  const semana = DIAS[new Date(Date.UTC(anio, mes - 1, dia)).getUTCDay()].slice(0, 3);
+  return { semana, dia, mes: MESES[mes - 1].slice(0, 3) };
+}
+
+/** Mañana o tarde según la hora del cupo, para agrupar las horas. */
+export const turno = (iso: string) => (Number(iso.slice(11, 13)) < 13 ? 'manana' : 'tarde');

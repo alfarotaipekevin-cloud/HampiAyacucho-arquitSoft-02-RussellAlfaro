@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { BarraPortal } from '../../componentes/barra-portal';
 import { mensajeDeError } from '../../nucleo/api';
 import { CitasService } from '../../nucleo/citas.service';
-import { esFutura, fechaHoraLarga } from '../../nucleo/formato';
+import { esFutura, fechaHoraLarga, partesDelDia } from '../../nucleo/formato';
 import { CitaResumen } from '../../nucleo/modelos';
 import { ESTADOS_CITA, TEXTOS } from '../../nucleo/textos';
 
@@ -21,6 +21,7 @@ export class MisCitas {
   protected readonly textos = TEXTOS;
   protected readonly estados = ESTADOS_CITA;
   protected readonly fechaHoraLarga = fechaHoraLarga;
+  protected readonly partesDelDia = partesDelDia;
 
   protected readonly todas = signal<CitaResumen[]>([]);
   protected readonly filtro = signal<Filtro>('TODAS');

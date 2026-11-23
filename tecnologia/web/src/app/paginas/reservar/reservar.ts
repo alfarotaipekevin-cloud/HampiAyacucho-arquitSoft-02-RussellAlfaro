@@ -3,7 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { BarraPortal } from '../../componentes/barra-portal';
 import { mensajeDeError } from '../../nucleo/api';
 import { CitasService } from '../../nucleo/citas.service';
-import { diaLargo, fechaHoraLarga, hora } from '../../nucleo/formato';
+import { diaLargo, fechaHoraLarga, hora, partesDelDia, turno } from '../../nucleo/formato';
 import { Cupo, Especialidad, Establecimiento } from '../../nucleo/modelos';
 import { TEXTOS } from '../../nucleo/textos';
 
@@ -21,6 +21,8 @@ export class Reservar {
   protected readonly diaLargo = diaLargo;
   protected readonly fechaHoraLarga = fechaHoraLarga;
   protected readonly hora = hora;
+  protected readonly partesDelDia = partesDelDia;
+  protected readonly iconos: Record<string, string | undefined> = { mg: '🩺', ped: '👶', gin: '🤰', car: '❤️', odo: '🦷' };
 
   protected readonly paso = signal(0);
   protected readonly cargando = signal(true);
@@ -36,6 +38,9 @@ export class Reservar {
   protected readonly establecimiento = signal<Establecimiento | null>(null);
   protected readonly fecha = signal('');
   protected readonly cupo = signal<Cupo | null>(null);
+
+  protected readonly cuposManana = computed(() => this.cupos().filter((c) => turno(c.fechaHora) === 'manana'));
+  protected readonly cuposTarde = computed(() => this.cupos().filter((c) => turno(c.fechaHora) === 'tarde'));
 
   protected readonly resumen = computed(() => ({
     especialidad: this.especialidad()?.nombre ?? '',

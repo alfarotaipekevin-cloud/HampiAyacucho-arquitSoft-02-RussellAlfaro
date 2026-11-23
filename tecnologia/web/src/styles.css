@@ -915,3 +915,449 @@ h2.seccion {
     font-size: 1rem;
   }
 }
+
+/* ===== Cabecera de las páginas internas (reservar, mis citas, ficha) ===== */
+.cabecera-pagina {
+  color: var(--blanco);
+  background:
+    linear-gradient(120deg, rgba(7, 82, 57, 0.97) 0%, rgba(11, 110, 79, 0.9) 60%, rgba(11, 110, 79, 0.8) 100%),
+    url('/img/hospital-regional.jpg') center 40% / cover no-repeat;
+}
+.cabecera-pagina .interior {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 28px 16px 68px;
+}
+.cabecera-pagina .interior.con-accion {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.cabecera-pagina h1 {
+  font-size: 1.8rem;
+  margin-bottom: 4px;
+}
+.cabecera-pagina p {
+  margin: 0;
+  max-width: 36rem;
+}
+.contenido.pagina-flotante {
+  max-width: 1080px;
+  margin-top: -44px;
+  padding-top: 0;
+}
+.pagina-flotante .tarjeta {
+  border-radius: 14px;
+  border-color: #e3e6e8;
+  box-shadow: 0 6px 20px rgba(7, 82, 57, 0.08);
+}
+.pagina-flotante > .aviso {
+  box-shadow: 0 6px 20px rgba(7, 82, 57, 0.08);
+}
+
+/* Progreso de la reserva */
+.progreso {
+  margin-bottom: 16px;
+  padding: 16px 20px;
+}
+.progreso .pasos {
+  margin: 0;
+  justify-content: space-between;
+  gap: 4px;
+}
+.progreso .pasos li {
+  flex: 1;
+  position: relative;
+}
+.progreso .pasos li:not(:last-child)::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: var(--borde);
+  margin: 0 6px;
+}
+.progreso .pasos li.hecho:not(:last-child)::after {
+  background: var(--verde);
+}
+.progreso .pasos li::before {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  background: #9aa3a8;
+}
+.progreso .pasos li.hecho::before {
+  content: '✓';
+}
+.progreso-movil,
+.barra-progreso {
+  display: none;
+}
+.barra-progreso {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--verde-claro);
+  overflow: hidden;
+}
+.barra-progreso span {
+  display: block;
+  height: 100%;
+  background: var(--verde);
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+.reserva-rejilla {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 16px;
+  align-items: start;
+}
+.reserva-paso {
+  min-height: 320px;
+}
+.seleccion {
+  position: sticky;
+  top: 16px;
+}
+.seleccion h2 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--texto-suave);
+}
+.seleccion dl {
+  margin: 0 0 12px;
+}
+.seleccion dl div {
+  padding: 10px 0 10px 28px;
+  border-bottom: 1px solid var(--borde);
+  position: relative;
+}
+.seleccion dl div::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 13px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--borde);
+}
+.seleccion dl div.listo::before {
+  border-color: var(--verde);
+  background: var(--verde);
+  box-shadow: inset 0 0 0 3px var(--blanco);
+}
+.seleccion dt {
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+}
+.seleccion dd {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.93rem;
+}
+.enlaces-seleccion {
+  margin: 0;
+}
+
+.opcion {
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+.opcion:hover {
+  transform: translateY(-1px);
+}
+.especialidades {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+}
+.opcion-icono {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 12px;
+  text-align: center;
+}
+.opcion-icono .emoji {
+  font-size: 2rem;
+  line-height: 1;
+}
+.establecimientos {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+.dias {
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 8px;
+}
+.dia-boton {
+  text-align: center;
+  padding: 8px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+}
+.dia-boton .semana,
+.dia-boton .mes {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+.dia-boton .numero {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--verde-oscuro);
+}
+.dia-boton[aria-pressed='true'] {
+  background: var(--verde);
+  border-color: var(--verde);
+}
+.dia-boton[aria-pressed='true'] span {
+  color: var(--blanco);
+}
+.subtitulo-hora {
+  margin-top: 24px;
+}
+h3.turno {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--texto-suave);
+  margin: 16px 0 8px;
+}
+.horas {
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px;
+}
+.hora-boton {
+  text-align: center;
+  font-size: 1.05rem;
+  padding: 10px 6px;
+}
+
+/* Mis citas */
+.filtros {
+  display: inline-flex;
+  gap: 4px;
+  padding: 6px;
+  margin-bottom: 16px;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.filtro {
+  background: none;
+  color: var(--texto-suave);
+  padding: 8px 16px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.filtro[aria-pressed='true'] {
+  background: var(--verde);
+  color: var(--blanco);
+}
+.cita {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+}
+.cita h2 {
+  margin: 6px 0 2px;
+}
+.cita p {
+  margin: 0;
+}
+.cita.apagada .calendario-dia .mes {
+  background: #6b7378;
+}
+.cita.apagada .calendario-dia .dia {
+  color: var(--texto-suave);
+}
+.cita .calendario-dia {
+  width: 64px;
+}
+.vacio-grande {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--texto-suave);
+}
+.vacio-grande .emoji {
+  font-size: 2.5rem;
+}
+
+/* Ficha */
+.ficha-boleto {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.ficha-qr-lado {
+  background: var(--verde-claro);
+  border-right: 2px dashed #b8ddcd;
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.ficha-qr-lado .ficha-qr {
+  background: var(--blanco);
+  padding: 8px;
+  border-radius: 12px;
+}
+.ficha-qr-lado .ficha-codigo {
+  margin-bottom: 8px;
+}
+.ficha-datos-lado {
+  padding: 24px 28px;
+}
+.recordatorio {
+  background: #fff6e0;
+  color: var(--ambar);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.92rem;
+}
+.acciones-ficha {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.acciones-ficha .primario {
+  width: auto;
+}
+.pie-ficha {
+  margin-top: 16px;
+}
+
+/* ===== Responsivo de las páginas internas ===== */
+@media (max-width: 900px) {
+  .reserva-rejilla {
+    grid-template-columns: 1fr;
+  }
+  .seleccion {
+    position: static;
+    order: -1;
+  }
+  .seleccion dl {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .seleccion dl div {
+    border-bottom: 0;
+  }
+}
+@media (max-width: 760px) {
+  .cabecera-pagina h1 {
+    font-size: 1.45rem;
+  }
+  .cabecera-pagina .interior {
+    padding-bottom: 60px;
+  }
+  .cabecera-pagina .con-accion .boton {
+    width: 100%;
+  }
+  .progreso .pasos {
+    display: none;
+  }
+  .progreso-movil,
+  .barra-progreso {
+    display: block;
+  }
+  .progreso-movil {
+    margin: 0 0 8px;
+    font-size: 0.92rem;
+  }
+  .seleccion dl {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .seleccion dl div {
+    border-bottom: 1px solid var(--borde);
+  }
+  .especialidades {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .establecimientos {
+    grid-template-columns: 1fr;
+  }
+  .dias {
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  }
+  .horas {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .tarjeta {
+    padding: 18px;
+  }
+  .cita {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .cita .boton {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  .ficha-boleto {
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+  .ficha-qr-lado {
+    border-right: 0;
+    border-bottom: 2px dashed #b8ddcd;
+  }
+  .ficha-datos-lado {
+    padding: 20px;
+  }
+  .acciones-ficha .boton,
+  .acciones-ficha button,
+  .acciones-ficha .primario {
+    width: 100%;
+  }
+}
+
+/* Ajustes: colores del progreso, mes en mayúsculas y "Tu selección" compacta en pantallas chicas */
+.progreso .pasos li.activo::before,
+.progreso .pasos li.hecho::before {
+  background: var(--verde);
+}
+.calendario-dia .mes {
+  text-transform: uppercase;
+}
+@media (max-width: 900px) {
+  .seleccion.inicio,
+  .seleccion .pendiente,
+  .seleccion .enlaces-seleccion {
+    display: none;
+  }
+  .seleccion {
+    padding: 14px 18px;
+  }
+  .seleccion h2 {
+    margin-bottom: 4px;
+  }
+  .seleccion dl {
+    margin: 0;
+  }
+  .seleccion dl div:last-of-type {
+    border-bottom: 0;
+  }
+}
+@media (min-width: 761px) and (max-width: 900px) {
+  .progreso .pasos li:not(.activo) {
+    font-size: 0;
+    flex: 0 1 auto;
+  }
+  .progreso .pasos li:not(.activo):not(:last-child) {
+    flex: 1;
+  }
+  .progreso .pasos li::before {
+    font-size: 0.85rem;
+  }
+}

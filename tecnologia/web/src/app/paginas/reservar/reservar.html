@@ -1,129 +1,168 @@
 <app-barra-portal />
 
-<main class="contenido">
-  <h1>{{ textos.reservar.titulo }}</h1>
+<section class="cabecera-pagina">
+  <div class="interior">
+    <h1>{{ textos.reservar.titulo }}</h1>
+    <p>{{ textos.reservar.bajada }}</p>
+  </div>
+</section>
 
-  <ol class="pasos">
-    @for (nombre of textos.reservar.pasos; track nombre; let i = $index) {
-      <li [class.activo]="paso() === i" [class.hecho]="paso() > i" [attr.aria-current]="paso() === i ? 'step' : null">{{ nombre }}</li>
-    }
-  </ol>
+<main class="contenido pagina-flotante">
+  <nav class="tarjeta progreso" [attr.aria-label]="textos.reservar.titulo">
+    <p class="progreso-movil">
+      {{ textos.reservar.pasoDe }} {{ paso() + 1 }} {{ textos.reservar.de }} {{ textos.reservar.pasos.length }} ·
+      <strong>{{ textos.reservar.pasos[paso()] }}</strong>
+    </p>
+    <div class="barra-progreso" aria-hidden="true"><span [style.width.%]="((paso() + 1) / textos.reservar.pasos.length) * 100"></span></div>
+    <ol class="pasos">
+      @for (nombre of textos.reservar.pasos; track nombre; let i = $index) {
+        <li [class.activo]="paso() === i" [class.hecho]="paso() > i" [attr.aria-current]="paso() === i ? 'step' : null">{{ nombre }}</li>
+      }
+    </ol>
+  </nav>
 
   @if (error()) {
     <p class="aviso error" role="alert">{{ error() }}</p>
   }
 
-  <section class="tarjeta">
-    @switch (paso()) {
-      @case (0) {
-        <h2>{{ textos.reservar.especialidad }}</h2>
-        @if (cargando()) {
-          <p class="suave">{{ textos.comun.cargando }}</p>
-        }
-        <div class="opciones">
-          @for (e of especialidades(); track e.id) {
-            <button type="button" class="opcion" [attr.aria-pressed]="especialidad()?.id === e.id" (click)="elegirEspecialidad(e)">
-              {{ e.nombre }}
-            </button>
-          }
-        </div>
-      }
-
-      @case (1) {
-        <h2>{{ textos.reservar.establecimiento }}</h2>
-        <p class="suave">{{ especialidad()?.nombre }}</p>
-        @if (establecimientos().length === 0 && !cargando()) {
-          <p class="aviso info">{{ textos.reservar.establecimientoVacio }}</p>
-        }
-        <div class="opciones">
-          @for (e of establecimientos(); track e.id) {
-            <button type="button" class="opcion con-imagen" [attr.aria-pressed]="establecimiento()?.id === e.id" (click)="elegirEstablecimiento(e)">
-              @if (e.id === 'hra') {
-                <img src="img/logo-hospital-regional.jpg" alt="" width="44" height="44" />
-              } @else {
-                <span class="inicial" aria-hidden="true">{{ e.nombre.startsWith('Hospital') ? 'H' : 'CS' }}</span>
-              }
-              <span>
-                {{ e.nombre }}
-                <span class="detalle">{{ e.provincia }} · {{ e.direccion }}</span>
-              </span>
-            </button>
-          }
-        </div>
-        <p>
-          <button type="button" class="texto" (click)="volver(0)">{{ textos.reservar.atras }}</button>
-        </p>
-      }
-
-      @case (2) {
-        <h2>{{ textos.reservar.fecha }}</h2>
-        <p class="suave">{{ especialidad()?.nombre }} · {{ establecimiento()?.nombre }}</p>
-        @if (fechas().length === 0 && !cargando()) {
-          <p class="aviso info">{{ textos.reservar.fechaVacia }}</p>
-        }
-        <div class="opciones">
-          @for (f of fechas(); track f) {
-            <button type="button" class="opcion" [attr.aria-pressed]="fecha() === f" (click)="elegirFecha(f)">{{ diaLargo(f) }}</button>
-          }
-        </div>
-
-        @if (fecha()) {
-          <h2 style="margin-top: 24px">{{ textos.reservar.hora }}</h2>
+  <div class="reserva-rejilla">
+    <section class="tarjeta reserva-paso">
+      @switch (paso()) {
+        @case (0) {
+          <h2>{{ textos.reservar.especialidad }}</h2>
           @if (cargando()) {
             <p class="suave">{{ textos.comun.cargando }}</p>
           }
-          @if (cupos().length === 0 && !cargando()) {
-            <p class="aviso info">{{ textos.reservar.horaVacia }}</p>
-          }
-          <div class="opciones horas">
-            @for (c of cupos(); track c.id) {
-              <button type="button" class="opcion" (click)="elegirCupo(c)">
-                {{ hora(c.fechaHora) }}
-                <span class="detalle">{{ c.consultorio }}</span>
+          <div class="opciones especialidades">
+            @for (e of especialidades(); track e.id) {
+              <button type="button" class="opcion opcion-icono" [attr.aria-pressed]="especialidad()?.id === e.id" (click)="elegirEspecialidad(e)">
+                <span class="emoji" aria-hidden="true">{{ iconos[e.id] ?? '🏥' }}</span>
+                {{ e.nombre }}
               </button>
             }
           </div>
         }
-        <p>
-          <button type="button" class="texto" (click)="volver(1)">{{ textos.reservar.atras }}</button>
-        </p>
-      }
 
-      @case (3) {
-        <h2>{{ textos.reservar.resumen }}</h2>
-        <ul class="datos">
-          <li>
-            <span class="etiqueta">{{ textos.ficha.especialidad }}</span
-            ><span class="valor">{{ resumen().especialidad }}</span>
-          </li>
-          <li>
-            <span class="etiqueta">{{ textos.ficha.establecimiento }}</span
-            ><span class="valor">{{ resumen().establecimiento }}</span>
-          </li>
-          <li>
-            <span class="etiqueta">{{ textos.ficha.fechaHora }}</span
-            ><span class="valor">{{ fechaHoraLarga(resumen().cupo!.fechaHora) }}</span>
-          </li>
-          <li>
-            <span class="etiqueta">{{ textos.reservar.consultorio }}</span
-            ><span class="valor">{{ resumen().cupo!.consultorio }}</span>
-          </li>
-          <li>
-            <span class="etiqueta">{{ textos.reservar.medico }}</span
-            ><span class="valor">{{ resumen().cupo!.medico }}</span>
-          </li>
-        </ul>
-        <button type="button" class="primario" [disabled]="enviando()" (click)="confirmar()">
-          {{ enviando() ? textos.reservar.confirmando : textos.reservar.confirmar }}
-        </button>
-        <p class="centro">
-          <button type="button" class="texto" (click)="volver(2)">{{ textos.reservar.cambiar }}</button>
-        </p>
-      }
-    }
-  </section>
+        @case (1) {
+          <h2>{{ textos.reservar.establecimiento }}</h2>
+          @if (establecimientos().length === 0 && !cargando()) {
+            <p class="aviso info">{{ textos.reservar.establecimientoVacio }}</p>
+          }
+          <div class="opciones establecimientos">
+            @for (e of establecimientos(); track e.id) {
+              <button type="button" class="opcion con-imagen" [attr.aria-pressed]="establecimiento()?.id === e.id" (click)="elegirEstablecimiento(e)">
+                @if (e.id === 'hra') {
+                  <img src="img/logo-hospital-regional.jpg" alt="" width="44" height="44" />
+                } @else {
+                  <span class="inicial" aria-hidden="true">{{ e.nombre.startsWith('Hospital') ? 'H' : 'CS' }}</span>
+                }
+                <span>
+                  {{ e.nombre }}
+                  <span class="detalle">{{ e.provincia }} · {{ e.direccion }}</span>
+                </span>
+              </button>
+            }
+          </div>
+          <p>
+            <button type="button" class="texto" (click)="volver(0)">← {{ textos.reservar.atras }}</button>
+          </p>
+        }
 
-  <p>
-    <a routerLink="/citas">{{ textos.misCitas.titulo }}</a> · <a routerLink="/portal">{{ textos.comun.volverPortal }}</a>
-  </p>
+        @case (2) {
+          <h2>{{ textos.reservar.fecha }}</h2>
+          @if (fechas().length === 0 && !cargando()) {
+            <p class="aviso info">{{ textos.reservar.fechaVacia }}</p>
+          }
+          <div class="opciones dias">
+            @for (f of fechas(); track f) {
+              <button type="button" class="opcion dia-boton" [attr.aria-pressed]="fecha() === f" [attr.aria-label]="diaLargo(f)" (click)="elegirFecha(f)">
+                <span class="semana">{{ partesDelDia(f).semana }}</span>
+                <span class="numero">{{ partesDelDia(f).dia }}</span>
+                <span class="mes">{{ partesDelDia(f).mes }}</span>
+              </button>
+            }
+          </div>
+
+          @if (fecha()) {
+            <h2 class="subtitulo-hora">{{ textos.reservar.hora }} · {{ diaLargo(fecha()) }}</h2>
+            @if (cargando()) {
+              <p class="suave">{{ textos.comun.cargando }}</p>
+            }
+            @if (cupos().length === 0 && !cargando()) {
+              <p class="aviso info">{{ textos.reservar.horaVacia }}</p>
+            }
+            @for (grupo of [{ nombre: textos.reservar.manana, cupos: cuposManana() }, { nombre: textos.reservar.tarde, cupos: cuposTarde() }]; track grupo.nombre) {
+              @if (grupo.cupos.length) {
+                <h3 class="turno">{{ grupo.nombre }}</h3>
+                <div class="opciones horas">
+                  @for (c of grupo.cupos; track c.id) {
+                    <button type="button" class="opcion hora-boton" (click)="elegirCupo(c)">
+                      {{ hora(c.fechaHora) }}
+                      <span class="detalle">{{ c.consultorio }}</span>
+                    </button>
+                  }
+                </div>
+              }
+            }
+          }
+          <p>
+            <button type="button" class="texto" (click)="volver(1)">← {{ textos.reservar.atras }}</button>
+          </p>
+        }
+
+        @case (3) {
+          <h2>{{ textos.reservar.resumen }}</h2>
+          <ul class="datos">
+            <li>
+              <span class="etiqueta">{{ textos.ficha.especialidad }}</span
+              ><span class="valor">{{ resumen().especialidad }}</span>
+            </li>
+            <li>
+              <span class="etiqueta">{{ textos.ficha.establecimiento }}</span
+              ><span class="valor">{{ resumen().establecimiento }}</span>
+            </li>
+            <li>
+              <span class="etiqueta">{{ textos.ficha.fechaHora }}</span
+              ><span class="valor">{{ fechaHoraLarga(resumen().cupo!.fechaHora) }}</span>
+            </li>
+            <li>
+              <span class="etiqueta">{{ textos.reservar.consultorio }}</span
+              ><span class="valor">{{ resumen().cupo!.consultorio }}</span>
+            </li>
+            <li>
+              <span class="etiqueta">{{ textos.reservar.medico }}</span
+              ><span class="valor">{{ resumen().cupo!.medico }}</span>
+            </li>
+          </ul>
+          <button type="button" class="primario" [disabled]="enviando()" (click)="confirmar()">
+            {{ enviando() ? textos.reservar.confirmando : textos.reservar.confirmar }}
+          </button>
+          <p class="centro">
+            <button type="button" class="texto" (click)="volver(2)">{{ textos.reservar.cambiar }}</button>
+          </p>
+        }
+      }
+    </section>
+
+    <aside class="tarjeta seleccion" [class.inicio]="paso() === 0" [attr.aria-label]="textos.reservar.tuSeleccion">
+      <h2>{{ textos.reservar.tuSeleccion }}</h2>
+      <dl>
+        <div [class.listo]="especialidad()" [class.pendiente]="!especialidad()">
+          <dt>{{ textos.ficha.especialidad }}</dt>
+          <dd>{{ especialidad()?.nombre ?? textos.reservar.sinElegir }}</dd>
+        </div>
+        <div [class.listo]="establecimiento()" [class.pendiente]="!establecimiento()">
+          <dt>{{ textos.ficha.establecimiento }}</dt>
+          <dd>{{ establecimiento()?.nombre ?? textos.reservar.sinElegir }}</dd>
+        </div>
+        <div [class.listo]="cupo()" [class.pendiente]="!cupo() && !fecha()">
+          <dt>{{ textos.ficha.fechaHora }}</dt>
+          <dd>{{ cupo() ? fechaHoraLarga(cupo()!.fechaHora) : fecha() ? diaLargo(fecha()) : textos.reservar.sinElegir }}</dd>
+        </div>
+      </dl>
+      <p class="suave enlaces-seleccion">
+        <a routerLink="/citas">{{ textos.misCitas.titulo }}</a> · <a routerLink="/portal">{{ textos.comun.volverPortal }}</a>
+      </p>
+    </aside>
+  </div>
 </main>
