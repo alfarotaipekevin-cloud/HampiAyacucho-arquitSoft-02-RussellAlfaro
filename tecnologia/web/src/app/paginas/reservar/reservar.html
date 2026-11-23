@@ -37,9 +37,16 @@
         }
         <div class="opciones">
           @for (e of establecimientos(); track e.id) {
-            <button type="button" class="opcion" [attr.aria-pressed]="establecimiento()?.id === e.id" (click)="elegirEstablecimiento(e)">
-              {{ e.nombre }}
-              <span class="detalle">{{ e.provincia }} · {{ e.direccion }}</span>
+            <button type="button" class="opcion con-imagen" [attr.aria-pressed]="establecimiento()?.id === e.id" (click)="elegirEstablecimiento(e)">
+              @if (e.id === 'hra') {
+                <img src="img/logo-hospital-regional.jpg" alt="" width="44" height="44" />
+              } @else {
+                <span class="inicial" aria-hidden="true">{{ e.nombre.startsWith('Hospital') ? 'H' : 'CS' }}</span>
+              }
+              <span>
+                {{ e.nombre }}
+                <span class="detalle">{{ e.provincia }} · {{ e.direccion }}</span>
+              </span>
             </button>
           }
         </div>

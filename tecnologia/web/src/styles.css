@@ -243,37 +243,137 @@ button:disabled {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: var(--fondo);
 }
 .acceso .cuerpo {
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
 }
 .acceso .presentacion {
-  background: var(--verde);
+  position: relative;
   color: var(--blanco);
-  padding: 48px 40px;
+  padding: 36px 48px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 32px;
+  /* Foto del Hospital Regional con un velo verde para que el texto se lea (contraste AA) */
+  background:
+    linear-gradient(160deg, rgba(7, 82, 57, 0.92) 0%, rgba(11, 110, 79, 0.78) 55%, rgba(7, 82, 57, 0.72) 100%),
+    url('/img/hospital-regional.jpg') center / cover no-repeat;
+}
+.marca-acceso {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: 0.01em;
+}
+.marca-acceso .isotipo {
+  width: 36px;
+  height: 36px;
+}
+.acceso .mensaje {
+  max-width: 30rem;
 }
 .acceso .presentacion h1 {
-  font-size: 2rem;
+  font-size: 2.4rem;
+  margin-bottom: 12px;
 }
-.acceso .presentacion p {
+.acceso .presentacion .lema {
+  font-size: 1.1rem;
+  margin: 0 0 28px;
+}
+.como-funciona {
+  list-style: none;
+  counter-reset: paso;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 14px;
+}
+.como-funciona li {
+  counter-increment: paso;
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  column-gap: 14px;
+  align-items: center;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 12px;
+}
+.como-funciona li::before {
+  content: counter(paso);
+  grid-row: span 2;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--blanco);
+  color: var(--verde-oscuro);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
   font-size: 1.05rem;
-  max-width: 24rem;
-  opacity: 0.95;
+}
+.como-funciona strong {
+  font-size: 1rem;
+}
+.como-funciona span {
+  font-size: 0.9rem;
+}
+.acceso .red {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.85rem;
+  max-width: 30rem;
+}
+.acceso .red img {
+  border-radius: 50%;
+  background: var(--blanco);
+  flex-shrink: 0;
+}
+.acceso .red p {
+  margin: 0;
 }
 .acceso .panel {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
+  padding: 40px 24px;
 }
 .acceso .panel .tarjeta {
   width: 100%;
-  max-width: 26rem;
+  max-width: 27rem;
+  padding: 32px;
+  border: 0;
+  border-top: 5px solid var(--verde);
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(7, 82, 57, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+.acceso .panel .tarjeta h2 {
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+}
+.acceso .panel .tarjeta > .suave:first-of-type {
+  margin-top: 0;
+  margin-bottom: 22px;
+}
+.acceso .panel .primario {
+  padding: 13px 18px;
+  margin-top: 4px;
+}
+.acceso .panel hr {
+  border: 0;
+  border-top: 1px solid var(--borde);
+  margin: 20px 0;
+}
+.acceso .panel .boton.secundario {
+  margin-top: 10px;
+  width: 100%;
 }
 .pie {
   padding: 14px 16px;
@@ -282,17 +382,29 @@ button:disabled {
   color: var(--texto-suave);
 }
 
-@media (max-width: 760px) {
+@media (max-width: 860px) {
   .acceso .cuerpo {
     grid-template-columns: 1fr;
   }
   .acceso .presentacion {
-    padding: 28px 20px;
-    text-align: center;
-    align-items: center;
+    padding: 24px 20px 28px;
+    gap: 18px;
   }
   .acceso .presentacion h1 {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
+  }
+  .acceso .presentacion .lema {
+    margin-bottom: 0;
+  }
+  .como-funciona,
+  .acceso .red {
+    display: none;
+  }
+  .acceso .panel {
+    padding: 24px 16px;
+  }
+  .acceso .panel .tarjeta {
+    padding: 24px 20px;
   }
 }
 
@@ -453,4 +565,26 @@ button:disabled {
   gap: 16px;
   align-items: center;
   flex-wrap: wrap;
+}
+
+/* Establecimientos con su logo o inicial */
+.opcion.con-imagen {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.opcion.con-imagen img,
+.opcion.con-imagen .inicial {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.opcion.con-imagen .inicial {
+  display: grid;
+  place-items: center;
+  background: var(--verde-claro);
+  color: var(--verde-oscuro);
+  font-size: 0.85rem;
+  font-weight: 700;
 }
