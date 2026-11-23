@@ -37,6 +37,7 @@ export const documentoOpenApi = {
     { name: 'Portal', description: 'Tarjetas de módulos del paciente (spec 003)' },
     { name: 'Disponibilidad', description: 'Catálogo y cupos libres, con caché Redis (spec 004, ADR-004)' },
     { name: 'Citas', description: 'Reserva, ficha, cancelación y mis citas (spec 005)' },
+    { name: 'Admisión', description: 'Recepción: agenda del día por servicio, lectura del QR y registro de llegada (spec 007). Rol PERSONAL_SALUD.' },
   ],
   components: {
     securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' } },
@@ -79,6 +80,17 @@ export const documentoOpenApi = {
         example: { id: 'c-0012', fechaHora: '2026-11-05T08:20:00-05:00', consultorio: 'Consultorio 3', medico: 'Dra. Ana Torres' },
       },
       EstadoCita: { type: 'string', enum: ['RESERVADA', 'CANCELADA', 'ATENDIDA', 'NO_ASISTIO'] },
+      CitaDeAgenda: {
+        type: 'object',
+        properties: {
+          citaId: { type: 'string' }, codigo: { type: 'string', example: 'HAMPI-7D73A2B1' },
+          fechaHora: { type: 'string', example: '2026-11-23T09:00:00-05:00' },
+          paciente: { type: 'string' }, dni: { type: 'string' }, consultorio: { type: 'string' }, medico: { type: 'string' },
+          estado: ref('EstadoCita'),
+          estadoAdmision: { type: 'string', enum: ['POR_LLEGAR', 'EN_ESPERA', 'ATENDIDA', 'NO_LLEGO', 'CANCELADA'] },
+          llegadaEn: { type: 'string', nullable: true },
+        },
+      },
       Ficha: {
         type: 'object',
         properties: {
@@ -297,6 +309,53 @@ export const documentoOpenApi = {
           200: { description: 'Cita cancelada; el cupo vuelve a estar libre', content: json(ref('Ficha')) },
           401: r401, 403: r403, 404: error('No existe o no es del paciente', 'CITA_NO_EXISTE'),
           409: error('No se puede cancelar', 'CITA_NO_RESERVADA', 'CITA_ATENDIDA', 'FUERA_DE_PLAZO'),
+        },
+      },
+    },
+      // Spec 007 · Admisión con QR
+    '/citas/admision/servicios': {
+      get: {
+        tags: ['Admisión'], summary: 'Establecimiento del personal y servicios que atiende (RA-01)', security: conToken,
+        responses: { 200: { description: 'Establecimiento y especialidades' }, 401: r401, 403: error('Rol no autorizado o cuenta sin establecimiento', 'ROL_NO_AUTORIZADO', 'SIN_ESTABLECIMIENTO') },
+      },
+    },
+    '/citas/admision/agenda': {
+      get: {
+        tags: ['Admisión'], summary: 'Citas de hoy de un servicio, con resumen (RA-02)', security: conToken,
+        parameters: [query('especialidadId', 'Servicio elegido por la recepción', true, 'ped')],
+        responses: {
+          200: { description: 'Agenda del día', content: json({ type: 'object', properties: { fecha: { type: 'string' }, resumen: { type: 'object' }, citas: { type: 'array', items: ref('CitaDeAgenda') } } }) },
+          400: error('Falta el servicio', 'ESPECIALIDAD_REQUERIDA'), 401: r401, 403: r403, 404: error('El establecimiento no atiende ese servicio', 'SERVICIO_NO_EXISTE'),
+        },
+      },
+    },
+    '/citas/admision/codigo/{codigo}': {
+      get: {
+        tags: ['Admisión'], summary: 'Buscar la cita por el código del QR (RN-12)', security: conToken,
+        parameters: [{ name: 'codigo', in: 'path', required: true, schema: { type: 'string', example: 'HAMPI-7D73A2B1' } }],
+        responses: {
+          200: { description: 'Cita, si se puede registrar la llegada y el motivo si no', content: json(ref('CitaDeAgenda')) },
+          400: error('Formato de código inválido', 'CODIGO_INVALIDO'), 401: r401, 403: r403, 404: error('No existe', 'CITA_NO_EXISTE'),
+        },
+      },
+    },
+    '/citas/admision/{citaId}/llegada': {
+      post: {
+        tags: ['Admisión'], summary: 'Registrar la llegada del paciente (RA-01 a RA-04)', security: conToken, parameters: [citaIdParam],
+        responses: {
+          200: { description: 'Paciente en espera', content: json(ref('CitaDeAgenda')) },
+          401: r401, 403: r403, 404: error('No existe o es de otro establecimiento', 'CITA_NO_EXISTE'),
+          409: error('No se puede registrar', 'CITA_NO_RESERVADA', 'LLEGADA_YA_REGISTRADA', 'CITA_DE_OTRO_DIA', 'FUERA_DE_TOLERANCIA'),
+        },
+      },
+    },
+    '/citas/admision/{citaId}/atencion': {
+      post: {
+        tags: ['Admisión'], summary: 'Marcar la cita como atendida (RA-05, RN-04)', security: conToken, parameters: [citaIdParam],
+        responses: {
+          200: { description: 'Cita atendida', content: json(ref('CitaDeAgenda')) },
+          401: r401, 403: r403, 404: error('No existe o es de otro establecimiento', 'CITA_NO_EXISTE'),
+          409: error('No se puede atender', 'SIN_LLEGADA', 'CITA_NO_RESERVADA'),
         },
       },
     },

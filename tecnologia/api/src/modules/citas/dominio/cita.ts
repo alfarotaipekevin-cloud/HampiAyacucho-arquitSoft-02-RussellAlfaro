@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { Dni } from '../../../shared/dominio/dni';
 import { ReglaNegocioError } from '../../../shared/dominio/errores';
+import { diaEnLima } from '../../../shared/dominio/fecha-lima';
 import { Cupo } from './cupo';
 import { EstadoCita, EstadoNotificacion } from './estado-cita';
 
@@ -24,12 +25,16 @@ export interface DatosCita {
   estado: EstadoCita;
   notificacion: EstadoNotificacion;
   creadaEn: Date;
+  /** Spec 007: hora en que el paciente llegó a admisión (null si aún no llega). */
+  llegadaEn?: Date | null;
 }
 
 /** Entidad principal del módulo: contiene las reglas de la cita médica (spec 005, §3). */
 export class Cita {
   static readonly MAX_CITAS_RESERVADAS = 3;
   static readonly HORAS_MINIMAS_CANCELACION = 2;
+  /** RA-04: minutos de tolerancia después de la hora de la cita para registrar la llegada. */
+  static readonly MINUTOS_TOLERANCIA = 20;
 
   private constructor(private datos: DatosCita) {}
 
@@ -58,11 +63,12 @@ export class Cita {
       estado: EstadoCita.RESERVADA,
       notificacion: 'PENDIENTE',
       creadaEn: c.ahora,
+      llegadaEn: null,
     });
   }
 
   static restaurar(datos: DatosCita): Cita {
-    return new Cita({ ...datos });
+    return new Cita({ ...datos, llegadaEn: datos.llegadaEn ?? null });
   }
 
   get id() { return this.datos.id; }
@@ -73,6 +79,7 @@ export class Cita {
   get estado() { return this.datos.estado; }
   get notificacion() { return this.datos.notificacion; }
   get creadaEn() { return this.datos.creadaEn; }
+  get llegadaEn() { return this.datos.llegadaEn ?? null; }
 
   perteneceA(pacienteId: string): boolean {
     return this.datos.pacienteId === pacienteId;
@@ -98,6 +105,49 @@ export class Cita {
     }
     this.datos.estado = EstadoCita.CANCELADA;
     this.datos.cupo.liberar();
+  }
+
+  esDelEstablecimiento(establecimientoId: string): boolean {
+    return this.datos.cupo.establecimientoId === establecimientoId;
+  }
+
+  /** RA-04: pasó la tolerancia y el paciente no llegó. */
+  vencioLaTolerancia(ahora: Date): boolean {
+    return ahora.getTime() > this.datos.cupo.fechaHora.getTime() + Cita.MINUTOS_TOLERANCIA * 60_000;
+  }
+
+  /**
+   * Spec 007 · Admisión: el personal registra que el paciente llegó.
+   * RA-01 su establecimiento · RA-02 la cita es de hoy · RA-03 sigue reservada y sin llegada · RA-04 dentro de la tolerancia.
+   */
+  registrarLlegada(ahora: Date, establecimientoDelPersonal: string): void {
+    if (!this.esDelEstablecimiento(establecimientoDelPersonal)) {
+      throw new ReglaNegocioError('OTRO_ESTABLECIMIENTO', 'RA-01: esta cita es de otro establecimiento');
+    }
+    if (this.datos.estado !== EstadoCita.RESERVADA) {
+      throw new ReglaNegocioError('CITA_NO_RESERVADA', `RA-03: la cita está ${this.datos.estado.toLowerCase().replace('_', ' ')}`);
+    }
+    if (this.datos.llegadaEn) {
+      throw new ReglaNegocioError('LLEGADA_YA_REGISTRADA', 'RA-03: la llegada de este paciente ya se registró');
+    }
+    if (diaEnLima(this.datos.cupo.fechaHora) !== diaEnLima(ahora)) {
+      throw new ReglaNegocioError('CITA_DE_OTRO_DIA', 'RA-02: la cita no es de hoy');
+    }
+    if (this.vencioLaTolerancia(ahora)) {
+      throw new ReglaNegocioError('FUERA_DE_TOLERANCIA', `RA-04: pasaron más de ${Cita.MINUTOS_TOLERANCIA} minutos desde la hora de la cita`);
+    }
+    this.datos.llegadaEn = ahora;
+  }
+
+  /** RA-05: el personal marca la cita como atendida solo si el paciente llegó. */
+  atender(establecimientoDelPersonal: string): void {
+    if (!this.esDelEstablecimiento(establecimientoDelPersonal)) {
+      throw new ReglaNegocioError('OTRO_ESTABLECIMIENTO', 'RA-01: esta cita es de otro establecimiento');
+    }
+    if (this.datos.estado === EstadoCita.RESERVADA && !this.datos.llegadaEn) {
+      throw new ReglaNegocioError('SIN_LLEGADA', 'RA-05: primero registra la llegada del paciente');
+    }
+    this.confirmarAsistencia();
   }
 
   /** RN-04: solo una cita reservada puede marcarse como atendida. */

@@ -46,5 +46,13 @@
     "moderadas": 0,
     "leves": 0,
     "reglas": []
+  },
+  {
+    "pantalla": "Admisión",
+    "criticas": 0,
+    "graves": 0,
+    "moderadas": 0,
+    "leves": 0,
+    "reglas": []
   }
 ]

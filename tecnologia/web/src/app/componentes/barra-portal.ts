@@ -22,6 +22,9 @@ import { TEXTOS } from '../nucleo/textos';
           @if (usuario()?.rol === 'PACIENTE') {
             <a routerLink="/citas" routerLinkActive="activo" [routerLinkActiveOptions]="{ exact: true }">{{ textos.barra.misCitas }}</a>
           }
+          @if (usuario()?.rol === 'PERSONAL_SALUD') {
+            <a routerLink="/admision" routerLinkActive="activo">{{ textos.barra.admision }}</a>
+          }
         </nav>
         <div class="usuario-barra">
           @if (usuario(); as u) {

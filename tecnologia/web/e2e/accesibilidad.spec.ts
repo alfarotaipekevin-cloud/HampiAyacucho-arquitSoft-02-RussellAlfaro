@@ -61,6 +61,19 @@ test.describe('EQ-05 · Accesibilidad WCAG 2.1 AA', () => {
     }
   });
 
+  test('Admisión (personal de salud, spec 007): sin errores críticos', async ({ page }) => {
+    await page.goto('/ingresar');
+    await page.getByLabel('Número de documento').fill('70000099');
+    await page.getByLabel('Contraseña', { exact: true }).fill('Hampi2026');
+    await page.getByRole('button', { name: 'Ingresar' }).click();
+    await expect(page.getByRole('heading', { name: '¿Qué quieres hacer hoy?' })).toBeVisible();
+    await page.goto('/admision');
+    await page.getByRole('button', { name: 'Pediatría' }).click();
+    await expect(page.getByRole('heading', { name: 'Citas de hoy' })).toBeVisible();
+    const r = await auditar(page, 'Admisión');
+    expect(r.violations.filter((v) => v.impact === 'critical')).toEqual([]);
+  });
+
   test('El formulario de ingreso se completa solo con el teclado', async ({ page }) => {
     await page.goto('/ingresar');
     await page.waitForLoadState('networkidle');

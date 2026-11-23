@@ -21,6 +21,7 @@ export interface Infraestructura {
   catalogo: DependenciasCitas['catalogo'];
   cupos: DependenciasCitas['cupos'];
   citas: DependenciasCitas['citas'];
+  personal: DependenciasCitas['personal'];
   validadorIdentidad: ValidadorIdentidad;
   notificador: Notificador;
   qr: GeneradorQR;
@@ -61,6 +62,7 @@ export function crearApp(infra: Infraestructura, opciones: { origenesCors?: stri
     catalogo: infra.catalogo,
     cupos: infra.cupos,
     citas: infra.citas,
+    personal: infra.personal,
     identidad: infra.validadorIdentidad,
     notificador: infra.notificador,
     qr: infra.qr,
@@ -77,7 +79,7 @@ export function crearApp(infra: Infraestructura, opciones: { origenesCors?: stri
     autorizarRol: identidad.autorizarRol,
   });
 
-  const portal = crearModuloPortal([citas.tarjeta], identidad.autenticarJwt);
+  const portal = crearModuloPortal(citas.tarjetas, identidad.autenticarJwt);
 
   const app = express();
   app.disable('x-powered-by');

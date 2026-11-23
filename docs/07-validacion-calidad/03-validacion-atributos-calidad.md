@@ -11,7 +11,7 @@
 | **EQ-01** Rendimiento | p95 ≤ 2 s y < 1 % de errores 5xx | k6, hasta **2,000 usuarios** | p95 **924 ms**, 0 % de errores, 929 peticiones/s (con Redis) | ✅ |
 | **EQ-02** Disponibilidad | La operación sigue respondiendo si falla una instancia o un servicio externo | k6 + 2 instancias + balanceador; Jest | **0 errores** en 39,851 peticiones mientras se apagaron una instancia y Redis | ✅ |
 | **EQ-03** Escalabilidad | 15,000 usuarios, p95 < 3 s | k6 (tendencia) | No ejecutable con recursos gratuitos; se demuestra la condición (API sin estado + caché compartida) | ⚠️ Parcial |
-| **EQ-04** Seguridad | 100 % de intentos no autorizados rechazados | Jest (matriz) | **78 de 78** rechazados (401/403); 21 accesos legítimos permitidos | ✅ (sin bitácora) |
+| **EQ-04** Seguridad | 100 % de intentos no autorizados rechazados | Jest (matriz) | **118 de 118** rechazados (401/403); 26 accesos legítimos permitidos (incluye las 5 operaciones de admisión, spec 007) | ✅ (sin bitácora) |
 | **EQ-05** Accesibilidad | 0 errores críticos WCAG 2.1 AA | axe-core + Playwright | **0 críticos** y 0 graves en 6 pantallas (se corrigió 1 de contraste) | ✅ (sin quechua) |
 | **EQ-06** Mantenibilidad | Ningún import de `dominio/` apunta a infraestructura | Jest (análisis de imports) | **0 violaciones** de la regla de dependencias ni entre módulos | ✅ |
 
@@ -113,7 +113,7 @@ No es posible generar 15,000 usuarios virtuales con una sola máquina ni con pla
 | Roles con permiso | Acceso permitido (21 accesos) | ✅ |
 | Errores | Sin trazas, SQL ni hashes en el cuerpo; sin cabecera `X-Powered-By` | ✅ |
 
-**Total: 78 de 78 intentos no autorizados rechazados (100 %).** Otras pruebas de seguridad del módulo: contraseñas con bcrypt, bloqueo de la cuenta al quinto intento (CA-002-8), un paciente no puede ver la cita de otro (CA-005-10).
+**Total: 118 de 118 intentos no autorizados rechazados (100 %).** Otras pruebas de seguridad del módulo: contraseñas con bcrypt, bloqueo de la cuenta al quinto intento (CA-002-8), un paciente no puede ver la cita de otro (CA-005-10).
 
 **Fuera del alcance:** la bitácora de auditoría y el 2FA de ADR-005 son para la HCE y el personal de salud, módulos que no entran en este semestre. El cifrado en tránsito (HTTPS) lo dan Vercel y Render al desplegar.
 

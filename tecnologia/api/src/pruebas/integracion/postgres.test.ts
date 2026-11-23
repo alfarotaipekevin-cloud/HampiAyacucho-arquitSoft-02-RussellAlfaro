@@ -6,7 +6,8 @@ import { crearApp, Infraestructura } from '../../app';
 import { migrar } from '../../db/migrador';
 import { crearInfraestructuraPostgres } from '../../infraestructura';
 import { Cita } from '../../modules/citas/dominio/cita';
-import { CitasPostgresRepository, CuposPostgresRepository } from '../../modules/citas';
+import { CitasPostgresRepository, CuposPostgresRepository, PersonalPostgresRepository } from '../../modules/citas';
+import { diaEnLima } from '../../shared/dominio/fecha-lima';
 import { Dni } from '../../shared/dominio/dni';
 import { DATOS_JOSE, DATOS_MARIA, entrar, llamar } from '../ayudantes';
 
@@ -159,5 +160,31 @@ describe('Integración con PostgreSQL y simuladores', () => {
     // El cupo del intento rechazado no quedó ocupado (la transacción se deshizo)
     const estados = await Promise.all([cupoA.id, cupoB.id].map(async (id) => (await cupos.buscarPorId(id))!.estaDisponible()));
     expect(estados.sort()).toEqual([false, true]);
+  });
+
+  test('spec 007: la agenda del día, la búsqueda por código y la hora de llegada se guardan en PostgreSQL', async () => {
+    const cupos = new CuposPostgresRepository(bd);
+    const citas = new CitasPostgresRepository(bd);
+    expect(await new PersonalPostgresRepository(bd).establecimientoDe('70000099')).toBe('hra');
+    expect(await new PersonalPostgresRepository(bd).establecimientoDe('70000001')).toBeNull();
+    expect((await infra.catalogo.especialidadesDelEstablecimiento('csjb')).map((x) => x.id)).toEqual(['mg', 'odo']);
+
+    const token = await entrar(url, DATOS_JOSE);
+    const cupo = (await cupos.buscarPorId(await cupoLibre(token, 'car', 'hra')))!;
+    const cita = Cita.reservar({
+      pacienteId: randomUUID(), dni: new Dni('70000002'), cupo, ahora: new Date(),
+      yaTieneCitaEseDiaEnLaEspecialidad: false, citasReservadasDelPaciente: 0,
+    });
+    await citas.guardarReserva(cita);
+
+    const dia = diaEnLima(cupo.fechaHora);
+    expect((await citas.delDia('hra', 'car', dia)).map((c) => c.codigo)).toContain(cita.codigo);
+    expect(await citas.delDia('hah', 'car', dia)).toEqual([]);
+
+    // Llegada registrada a la hora de la cita (RA-02 y RA-04 se cumplen ese instante)
+    const leida = (await citas.buscarPorCodigo(cita.codigo))!;
+    leida.registrarLlegada(cupo.fechaHora, 'hra');
+    await citas.actualizar(leida);
+    expect((await citas.buscarPorId(cita.id))!.llegadaEn?.getTime()).toBe(cupo.fechaHora.getTime());
   });
 });

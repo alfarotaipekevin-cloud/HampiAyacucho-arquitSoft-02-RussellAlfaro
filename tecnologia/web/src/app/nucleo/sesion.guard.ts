@@ -13,3 +13,10 @@ export const invitadoGuard: CanActivateFn = () => {
   const sesion = inject(SesionService);
   return sesion.haySesion() ? inject(Router).createUrlTree(['/portal']) : true;
 };
+
+/** Spec 007: la admisión es solo para el personal de salud; el resto vuelve al portal. */
+export const personalGuard: CanActivateFn = () => {
+  const sesion = inject(SesionService);
+  if (!sesion.haySesion()) return inject(Router).createUrlTree(['/ingresar']);
+  return sesion.usuario()?.rol === 'PERSONAL_SALUD' ? true : inject(Router).createUrlTree(['/portal']);
+};

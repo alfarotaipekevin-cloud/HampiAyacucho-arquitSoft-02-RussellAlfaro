@@ -10,3 +10,4 @@ Las reglas del proceso están en la [constitución](00-constitucion.md). Cada fu
 | [004](specs/004-consulta-disponibilidad/spec.md) | Consulta de disponibilidad | HU01 | 2–3 | Implementada |
 | [005](specs/005-reserva-cita/spec.md) | Reserva de cita y ficha QR | HU02, HU13 | 2–3 | Implementada |
 | [006](specs/006-cache-y-validacion/spec.md) | Caché de disponibilidad (ADR-004), OpenAPI y validación de calidad | HT05, HT06, HT07 | 4 (Sprint 2 del curso) | Implementada |
+| [007](specs/007-admision-qr/spec.md) | Admisión con QR: la recepción elige su servicio, lee la ficha y registra la llegada | HU14 | 4 (Sprint 2 del curso) | Implementada |

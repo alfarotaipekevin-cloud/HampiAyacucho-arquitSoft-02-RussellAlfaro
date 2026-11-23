@@ -84,7 +84,7 @@ Errores con el formato común: `{ "error": { "codigo": "CITA_DUPLICADA", "mensaj
 Todas con **Jest** (ver [docs/07-validacion-calidad/02-pruebas-automatizadas-jest.md](../../docs/07-validacion-calidad/02-pruebas-automatizadas-jest.md)).
 
 ```bash
-npm test                 # 85 pruebas: unitarias, de API y de calidad (EQ-02, EQ-04, EQ-06), en memoria
+npm test                 # 94 pruebas: unitarias, de API y de calidad (EQ-02, EQ-04, EQ-06), en memoria
 npm run test:cobertura   # lo mismo + reporte de cobertura en coverage/index.html
 npm run test:calidad     # solo los escenarios de calidad, con detalle
 # Integración: necesita docker compose up (db + redis + simuladores). BORRA usuarios y citas de esa base.

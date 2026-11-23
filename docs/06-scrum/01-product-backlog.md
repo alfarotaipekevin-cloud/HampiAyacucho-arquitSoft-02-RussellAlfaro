@@ -16,6 +16,7 @@ Las historias HU01–HU08 vienen de `docs/01-analisis-de-sistema/02-historias-de
 | **HU11** | Como **usuario**, quiero recuperar mi contraseña con un código enviado a mi celular, para no perder el acceso a mi cuenta. |
 | **HU12** | Como **usuario**, quiero ver un portal con los servicios disponibles para mi rol, para elegir a dónde ir. |
 | **HU13** | Como **paciente**, quiero ver mis citas reservadas y su ficha QR, para recordarlas y presentarlas el día de la atención. |
+| **HU14** | Como **personal de admisión** de un piso, quiero elegir mi servicio, ver las citas de hoy y leer la ficha QR del paciente, para registrar su llegada y su atención. |
 | **HT01** | Como **equipo**, necesitamos un simulador de la PIDE/RENIEC, para probar la validación de identidad sin acceso al servicio real. |
 | **HT02** | Como **equipo**, necesitamos un simulador del proveedor de SMS, para probar las notificaciones sin enviar mensajes reales. |
 | **HT03** | Como **equipo**, necesitamos levantar todo el sistema con Docker Compose y validar cada PR con CI, para trabajar y demostrar sin configuraciones manuales. |
@@ -45,9 +46,10 @@ Las historias HU01–HU08 vienen de `docs/01-analisis-de-sistema/02-historias-de
 | 13 | HT05 | Caché Redis de disponibilidad | [006](../05-desarrollo-sdd/specs/006-cache-y-validacion/spec.md) | RF01 | M | 5 | 4 |
 | 14 | HT06 | Documentación OpenAPI/Swagger | [006](../05-desarrollo-sdd/specs/006-cache-y-validacion/spec.md) | — | M | 3 | 4 |
 | 15 | HT07 | Pruebas Jest con cobertura y validación EQ-01…EQ-06 (k6, axe) | [006](../05-desarrollo-sdd/specs/006-cache-y-validacion/spec.md) | — | M | 8 | 4 |
+| 16 | HU14 | Admisión con QR por servicio (recepción) | [007](../05-desarrollo-sdd/specs/007-admision-qr/spec.md) | RF03 | S | 5 | 4 |
 | — | HU03–HU08 | HCE, referencias, dashboard, reportes, auditoría | — | RF04–RF09 | W | — | Futuro |
 
-**Total comprometido (M + S):** 45 puntos en 3 sprints de desarrollo, más 16 puntos del Sprint 4 (Sprint 2 del curso: implementación y validación de la arquitectura).
+**Total comprometido (M + S):** 45 puntos en 3 sprints de desarrollo, más 21 puntos del Sprint 4 (Sprint 2 del curso: implementación y validación de la arquitectura).
 
 ---
 

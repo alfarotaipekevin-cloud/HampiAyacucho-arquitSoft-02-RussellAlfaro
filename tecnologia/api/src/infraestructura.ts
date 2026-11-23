@@ -1,10 +1,10 @@
 import { Pool } from 'pg';
-import { CONTRASENA_DEMO, ESPECIALIDADES, ESTABLECIMIENTOS, OFERTAS, USUARIOS_DEMO, generarCupos, sembrarPostgres } from './db/semilla';
+import { CONTRASENA_DEMO, ESPECIALIDADES, ESTABLECIMIENTOS, OFERTAS, PERSONAL_DEMO, USUARIOS_DEMO, generarCupos, sembrarPostgres } from './db/semilla';
 import { migrar } from './db/migrador';
 import { Infraestructura } from './app';
 import {
   CatalogoMemoriaRepository, CatalogoPostgresRepository, CitasMemoriaRepository, CitasPostgresRepository,
-  CuposMemoriaRepository, CuposPostgresRepository, PdfFichaAdapter, PideValidadorAdapter, QrPngAdapter, SmsNotificadorAdapter,
+  CuposMemoriaRepository, CuposPostgresRepository, PersonalMemoriaRepository, PersonalPostgresRepository, PdfFichaAdapter, PideValidadorAdapter, QrPngAdapter, SmsNotificadorAdapter,
 } from './modules/citas';
 import {
   CodigosMemoriaRepository, CodigosPostgresRepository, EmisorJwt, HasheadorBcrypt, RegistroCivilPideAdapter, SmsMensajeroAdapter, Usuario, UsuariosMemoriaRepository, UsuariosPostgresRepository,
@@ -61,6 +61,7 @@ export async function crearInfraestructuraMemoria(c: ConfiguracionInfraestructur
     usuarios,
     codigos: new CodigosMemoriaRepository(),
     catalogo: new CatalogoMemoriaRepository(ESPECIALIDADES, ESTABLECIMIENTOS, OFERTAS),
+    personal: new PersonalMemoriaRepository(PERSONAL_DEMO),
     ...conCache(cupos, new CitasMemoriaRepository(cupos), c.cache ?? new CacheMemoria()),
   };
 }
@@ -75,6 +76,7 @@ export async function crearInfraestructuraPostgres(c: ConfiguracionInfraestructu
     usuarios: new UsuariosPostgresRepository(bd),
     codigos: new CodigosPostgresRepository(bd),
     catalogo: new CatalogoPostgresRepository(bd),
+    personal: new PersonalPostgresRepository(bd),
     ...conCache(new CuposPostgresRepository(bd), new CitasPostgresRepository(bd), c.cache ?? new CacheMemoria()),
   };
 }

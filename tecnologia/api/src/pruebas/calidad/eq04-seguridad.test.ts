@@ -12,9 +12,10 @@ type Credencial = 'SIN_TOKEN' | 'TOKEN_ALTERADO' | 'TOKEN_VENCIDO' | 'OTRA_FIRMA
 const INVALIDAS: Credencial[] = ['SIN_TOKEN', 'TOKEN_ALTERADO', 'TOKEN_VENCIDO', 'OTRA_FIRMA', 'ALG_NONE'];
 const ROLES = ['PACIENTE', 'PERSONAL_SALUD', 'ESPECIALISTA_GERESA', 'ADMINISTRADOR'] as const;
 
-/** Quién puede usar cada operación (spec 004 y 005: catálogo para paciente y personal; reserva solo paciente). */
+/** Quién puede usar cada operación (specs 004, 005 y 007: catálogo para paciente y personal; reserva solo paciente; admisión solo personal). */
 function rolesPermitidos(ruta: string): readonly string[] {
   if (ruta === '/identidad/yo' || ruta === '/portal/modulos') return ROLES;
+  if (ruta.startsWith('/citas/admision')) return ['PERSONAL_SALUD']; // spec 007
   if (ruta.startsWith('/citas/especialidades') || ruta.startsWith('/citas/establecimientos') || ruta.startsWith('/citas/cupos')) return ['PACIENTE', 'PERSONAL_SALUD'];
   return ['PACIENTE'];
 }

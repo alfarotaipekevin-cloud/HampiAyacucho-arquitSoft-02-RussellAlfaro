@@ -5,7 +5,7 @@ import { Especialidad, Establecimiento } from '../dominio/catalogo';
 import { Cita } from '../dominio/cita';
 import { Cupo, EstadoCupo } from '../dominio/cupo';
 import { EstadoCita, EstadoNotificacion } from '../dominio/estado-cita';
-import { RepositorioCatalogo, RepositorioCitas, RepositorioCupos } from '../dominio/repositorios';
+import { RepositorioCatalogo, RepositorioCitas, RepositorioCupos, RepositorioPersonal } from '../dominio/repositorios';
 
 const COLUMNAS_ESTABLECIMIENTO = 'id, nombre, nombre_corto AS "nombreCorto", nivel, provincia, direccion';
 
@@ -34,6 +34,16 @@ export class CatalogoPostgresRepository implements RepositorioCatalogo {
        WHERE EXISTS (SELECT 1 FROM ofertas o WHERE o.establecimiento_id = e.id AND o.especialidad_id = $1)
        ORDER BY e.nombre`,
       [especialidadId],
+    );
+    return rows;
+  }
+
+  async especialidadesDelEstablecimiento(establecimientoId: string) {
+    const { rows } = await this.bd.query<Especialidad>(
+      `SELECT e.id, e.nombre FROM especialidades e
+       JOIN ofertas o ON o.especialidad_id = e.id AND o.establecimiento_id = $1
+       ORDER BY e.nombre`,
+      [establecimientoId],
     );
     return rows;
   }
@@ -69,17 +79,17 @@ export class CuposPostgresRepository implements RepositorioCupos {
 
 interface FilaCita extends FilaCupo {
   cita_id: string; codigo: string; paciente_id: string; dni_paciente: string;
-  cita_estado: EstadoCita; notificacion: EstadoNotificacion; creada_en: Date;
+  cita_estado: EstadoCita; notificacion: EstadoNotificacion; creada_en: Date; llegada_en: Date | null;
 }
 
 const SELECT_CITA = `SELECT ci.id AS cita_id, ci.codigo, ci.paciente_id, ci.dni_paciente, ci.estado AS cita_estado,
-  ci.notificacion, ci.creada_en, ${COLUMNAS_CUPO}
+  ci.notificacion, ci.creada_en, ci.llegada_en, ${COLUMNAS_CUPO}
   FROM citas ci JOIN cupos c ON c.id = ci.cupo_id`;
 
 const aCita = (f: FilaCita) =>
   Cita.restaurar({
     id: f.cita_id, codigo: f.codigo, pacienteId: f.paciente_id, dniPaciente: f.dni_paciente,
-    estado: f.cita_estado, notificacion: f.notificacion, creadaEn: f.creada_en,
+    estado: f.cita_estado, notificacion: f.notificacion, creadaEn: f.creada_en, llegadaEn: f.llegada_en,
     cupo: new Cupo({
       id: f.id, establecimientoId: f.establecimientoId, especialidadId: f.especialidadId, consultorio: f.consultorio,
       medico: f.medico, fechaHora: f.fechaHora, duracionMin: f.duracionMin, estado: f.estado,
@@ -142,7 +152,8 @@ export class CitasPostgresRepository implements RepositorioCitas {
     const cliente = await this.bd.connect();
     try {
       await cliente.query('BEGIN');
-      await cliente.query('UPDATE citas SET estado = $2, notificacion = $3 WHERE id = $1', [cita.id, cita.estado, cita.notificacion]);
+      await cliente.query('UPDATE citas SET estado = $2, notificacion = $3, llegada_en = $4 WHERE id = $1',
+        [cita.id, cita.estado, cita.notificacion, cita.llegadaEn]);
       await cliente.query('UPDATE cupos SET estado = $2 WHERE id = $1', [cita.cupo.id, cita.cupo.estaDisponible() ? 'DISPONIBLE' : 'OCUPADO']);
       await cliente.query('COMMIT');
     } catch (e) {
@@ -161,5 +172,29 @@ export class CitasPostgresRepository implements RepositorioCitas {
   async delPaciente(pacienteId: string) {
     const { rows } = await this.bd.query<FilaCita>(`${SELECT_CITA} WHERE ci.paciente_id = $1`, [pacienteId]);
     return rows.map(aCita);
+  }
+
+  async buscarPorCodigo(codigo: string) {
+    const { rows } = await this.bd.query<FilaCita>(`${SELECT_CITA} WHERE ci.codigo = $1`, [codigo]);
+    return rows[0] ? aCita(rows[0]) : null;
+  }
+
+  /** Usa el índice citas_agenda (dia_lima, especialidad_id). */
+  async delDia(establecimientoId: string, especialidadId: string, dia: string) {
+    const { rows } = await this.bd.query<FilaCita>(
+      `${SELECT_CITA} WHERE ci.dia_lima = $1 AND ci.especialidad_id = $2 AND c.establecimiento_id = $3 ORDER BY c.fecha_hora`,
+      [dia, especialidadId, establecimientoId],
+    );
+    return rows.map(aCita);
+  }
+}
+
+export class PersonalPostgresRepository implements RepositorioPersonal {
+  constructor(private readonly bd: Pool) {}
+
+  async establecimientoDe(dni: string) {
+    const { rows } = await this.bd.query<{ establecimiento_id: string }>(
+      'SELECT establecimiento_id FROM personal_establecimiento WHERE dni = $1', [dni]);
+    return rows[0]?.establecimiento_id ?? null;
   }
 }

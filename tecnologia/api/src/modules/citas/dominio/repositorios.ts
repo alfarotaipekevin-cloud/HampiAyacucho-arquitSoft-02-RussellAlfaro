@@ -9,6 +9,8 @@ export interface RepositorioCatalogo {
   establecimiento(id: string): Promise<Establecimiento | null>;
   /** RN-08: solo los establecimientos que atienden esa especialidad. */
   establecimientosConEspecialidad(especialidadId: string): Promise<Establecimiento[]>;
+  /** Spec 007: servicios (especialidades) que atiende un establecimiento. */
+  especialidadesDelEstablecimiento(establecimientoId: string): Promise<Especialidad[]>;
 }
 
 /** Puerto de lectura de cupos. */
@@ -30,4 +32,13 @@ export interface RepositorioCitas {
   actualizar(cita: Cita): Promise<void>;
   buscarPorId(id: string): Promise<Cita | null>;
   delPaciente(pacienteId: string): Promise<Cita[]>;
+  /** Spec 007 · RN-12: el QR lleva solo el código. */
+  buscarPorCodigo(codigo: string): Promise<Cita | null>;
+  /** Spec 007 · agenda: citas de un día ('AAAA-MM-DD') de un servicio en un establecimiento, por hora. */
+  delDia(establecimientoId: string, especialidadId: string, dia: string): Promise<Cita[]>;
+}
+
+/** Spec 007 · RA-01: en qué establecimiento trabaja cada persona del personal de salud. */
+export interface RepositorioPersonal {
+  establecimientoDe(dni: string): Promise<string | null>;
 }

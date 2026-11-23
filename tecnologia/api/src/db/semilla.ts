@@ -39,10 +39,17 @@ export const OFERTAS = [
 /** Cuentas de otros roles, que en esta etapa se crean por seed (RI-13). Contraseña: Hampi2026. */
 export const USUARIOS_DEMO: { dni: string; nombres: string; apellidoPaterno: string; apellidoMaterno: string; rol: Rol }[] = [
   { dni: '70000099', nombres: 'Personal de Salud', apellidoPaterno: 'Demo', apellidoMaterno: 'Hampi', rol: 'PERSONAL_SALUD' },
+  { dni: '70000096', nombres: 'Personal Huanta', apellidoPaterno: 'Demo', apellidoMaterno: 'Hampi', rol: 'PERSONAL_SALUD' },
   { dni: '70000098', nombres: 'Especialista', apellidoPaterno: 'Geresa', apellidoMaterno: 'Demo', rol: 'ESPECIALISTA_GERESA' },
   { dni: '70000097', nombres: 'Administrador', apellidoPaterno: 'Hampi', apellidoMaterno: 'Demo', rol: 'ADMINISTRADOR' },
 ];
 export const CONTRASENA_DEMO = 'Hampi2026';
+
+/** Spec 007 · RA-01: dónde trabaja cada cuenta del personal de salud. */
+export const PERSONAL_DEMO = [
+  { dni: '70000099', establecimientoId: 'hra' },
+  { dni: '70000096', establecimientoId: 'hah' },
+];
 
 const HORARIOS = Array.from({ length: 15 }, (_, i) => 8 * 60 + i * 20); // 08:00 a 12:40, cada 20 minutos
 const DIAS_GENERADOS = 31;
@@ -115,6 +122,9 @@ export async function sembrarPostgres(bd: Pool, ahora: Date, hashContrasenaDemo:
          VALUES ($1, $2, $3, $4, $5, '1988-08-08', '999999999', $6, $7) ON CONFLICT (dni) DO NOTHING`,
         [randomUUID(), u.dni, u.nombres, u.apellidoPaterno, u.apellidoMaterno, hash, u.rol],
       );
+    }
+    for (const p of PERSONAL_DEMO) {
+      await cliente.query('INSERT INTO personal_establecimiento VALUES ($1, $2) ON CONFLICT DO NOTHING', [p.dni, p.establecimientoId]);
     }
     await cliente.query('COMMIT');
   } catch (e) {

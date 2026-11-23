@@ -99,6 +99,12 @@ export class CitasConInvalidacionRepository implements RepositorioCitas {
   delPaciente(pacienteId: string) {
     return this.interno.delPaciente(pacienteId);
   }
+  buscarPorCodigo(codigo: string) {
+    return this.interno.buscarPorCodigo(codigo);
+  }
+  delDia(establecimientoId: string, especialidadId: string, dia: string) {
+    return this.interno.delDia(establecimientoId, especialidadId, dia);
+  }
 
   async guardarReserva(cita: Cita) {
     try {

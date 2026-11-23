@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { invitadoGuard, sesionGuard } from './nucleo/sesion.guard';
+import { invitadoGuard, personalGuard, sesionGuard } from './nucleo/sesion.guard';
 
 /** La web entra siempre por el ingreso; lo demás necesita sesión. */
 export const routes: Routes = [
@@ -45,6 +45,12 @@ export const routes: Routes = [
     canActivate: [sesionGuard],
     title: 'Ficha de la cita · Hampi Ayacucho',
     loadComponent: () => import('./paginas/ficha/ficha').then((m) => m.Ficha),
+  },
+  {
+    path: 'admision',
+    canActivate: [personalGuard],
+    title: 'Admisión de citas · Hampi Ayacucho',
+    loadComponent: () => import('./paginas/admision/admision').then((m) => m.Admision),
   },
   { path: '**', redirectTo: 'ingresar' },
 ];

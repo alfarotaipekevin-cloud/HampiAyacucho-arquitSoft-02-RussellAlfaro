@@ -4,7 +4,7 @@ import { Especialidad, Establecimiento } from '../dominio/catalogo';
 import { Cita, DatosCita } from '../dominio/cita';
 import { Cupo, DatosCupo } from '../dominio/cupo';
 import { EstadoCita } from '../dominio/estado-cita';
-import { RepositorioCatalogo, RepositorioCitas, RepositorioCupos } from '../dominio/repositorios';
+import { RepositorioCatalogo, RepositorioCitas, RepositorioCupos, RepositorioPersonal } from '../dominio/repositorios';
 
 // Implementaciones en memoria: pruebas rápidas y API sin base de datos (MODO_BD=memoria).
 // Guardan copias para que nadie modifique el estado "persistido" sin pasar por el repositorio.
@@ -32,6 +32,11 @@ export class CatalogoMemoriaRepository implements RepositorioCatalogo {
   async establecimientosConEspecialidad(especialidadId: string) {
     const ids = new Set(this.ofertas.filter((o) => o.especialidadId === especialidadId).map((o) => o.establecimientoId));
     return this.establecimientosBase.filter((e) => ids.has(e.id));
+  }
+
+  async especialidadesDelEstablecimiento(establecimientoId: string) {
+    const ids = new Set(this.ofertas.filter((o) => o.establecimientoId === establecimientoId).map((o) => o.especialidadId));
+    return (await this.especialidades()).filter((e) => ids.has(e.id));
   }
 }
 
@@ -99,14 +104,36 @@ export class CitasMemoriaRepository implements RepositorioCitas {
     return [...this.filas.values()].filter((c) => c.pacienteId === pacienteId).map((f) => this.aCita(f));
   }
 
+  async buscarPorCodigo(codigo: string) {
+    const fila = [...this.filas.values()].find((c) => c.codigo === codigo);
+    return fila ? this.aCita(fila) : null;
+  }
+
+  async delDia(establecimientoId: string, especialidadId: string, dia: string) {
+    return [...this.filas.values()]
+      .map((f) => this.aCita(f))
+      .filter((c) => c.cupo.establecimientoId === establecimientoId && c.cupo.especialidadId === especialidadId
+        && diaEnLima(c.cupo.fechaHora) === dia)
+      .sort((a, b) => a.cupo.fechaHora.getTime() - b.cupo.fechaHora.getTime());
+  }
+
   private aFila(cita: Cita): FilaCita {
     return {
       id: cita.id, codigo: cita.codigo, pacienteId: cita.pacienteId, dniPaciente: cita.dniPaciente,
       cupoId: cita.cupo.id, estado: cita.estado, notificacion: cita.notificacion, creadaEn: cita.creadaEn,
+      llegadaEn: cita.llegadaEn,
     };
   }
 
   private aCita({ cupoId, ...fila }: FilaCita) {
     return Cita.restaurar({ ...fila, cupo: new Cupo({ ...this.cupos.filas.get(cupoId)! }) });
+  }
+}
+
+export class PersonalMemoriaRepository implements RepositorioPersonal {
+  constructor(private readonly asignaciones: { dni: string; establecimientoId: string }[] = []) {}
+
+  async establecimientoDe(dni: string) {
+    return this.asignaciones.find((a) => a.dni === dni)?.establecimientoId ?? null;
   }
 }

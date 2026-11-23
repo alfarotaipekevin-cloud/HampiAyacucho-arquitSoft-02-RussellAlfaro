@@ -76,3 +76,38 @@ export interface CitaResumen {
   fechaHora: string;
   estado: string;
 }
+
+/** Spec 007 · Admisión con QR */
+export type EstadoAdmision = 'POR_LLEGAR' | 'EN_ESPERA' | 'ATENDIDA' | 'NO_LLEGO' | 'CANCELADA';
+
+export interface ServiciosAdmision {
+  establecimiento: { id: string; nombre: string };
+  especialidades: Especialidad[];
+}
+
+export interface CitaAgenda {
+  citaId: string;
+  codigo: string;
+  fechaHora: string;
+  paciente: string;
+  dni: string;
+  consultorio: string;
+  medico: string;
+  estado: string;
+  estadoAdmision: EstadoAdmision;
+  llegadaEn: string | null;
+}
+
+export interface AgendaDia {
+  fecha: string;
+  resumen: { porLlegar: number; enEspera: number; atendidas: number; noLlegaron: number };
+  citas: CitaAgenda[];
+}
+
+export interface LecturaQr extends CitaAgenda {
+  especialidad: string;
+  especialidadId: string;
+  establecimiento: string;
+  puedeRegistrarLlegada: boolean;
+  motivo: string | null;
+}
