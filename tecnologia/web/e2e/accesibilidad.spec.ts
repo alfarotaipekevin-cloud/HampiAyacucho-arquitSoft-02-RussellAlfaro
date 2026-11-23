@@ -63,12 +63,21 @@ test.describe('EQ-05 · Accesibilidad WCAG 2.1 AA', () => {
 
   test('El formulario de ingreso se completa solo con el teclado', async ({ page }) => {
     await page.goto('/ingresar');
-    await page.keyboard.press('Tab');
+    await page.waitForLoadState('networkidle');
+    // Recorre la página con Tab y anota qué control recibe el foco en cada paso.
     const enfocados: string[] = [];
-    for (let i = 0; i < 8; i++) {
-      enfocados.push(await page.evaluate(() => (document.activeElement as HTMLElement)?.getAttribute('id') || (document.activeElement as HTMLElement)?.textContent?.trim() || ''));
+    for (let i = 0; i < 25; i++) {
       await page.keyboard.press('Tab');
+      enfocados.push(await page.evaluate(() => {
+        const el = document.activeElement as HTMLElement | null;
+        if (!el) return '';
+        const etiqueta = el.id ? document.querySelector(`label[for="${el.id}"]`)?.textContent?.trim() : '';
+        return etiqueta || el.getAttribute('aria-label') || el.textContent?.trim() || el.tagName;
+      }));
     }
-    expect(enfocados.join('|')).toMatch(/Ingresar/);
+    const recorrido = enfocados.join(' | ');
+    expect(recorrido).toMatch(/Número de documento/);
+    expect(recorrido).toMatch(/Contraseña/);
+    expect(recorrido).toMatch(/Ingresar/);
   });
 });
