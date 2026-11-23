@@ -1,0 +1,7 @@
+01:47:01 Inicio: 2 instancias sanas, Redis activo
+01:47:31 Falla: se apaga la instancia 1 (kill -9)
+01:47:56 Falla: se apaga Redis
+01:48:16 Recuperación: Redis vuelve
+01:48:21 Recuperación: la instancia 1 vuelve
+01:48:43 Fin. Estado del balanceador: [{"url":"http://localhost:3001/","sana":true,"atendidas":9751,"fallas":1},{"url":"http://localhost:3002/","sana":true,"atendidas":30100,"fallas":0}]
+01:48:43 Caché de la instancia 2: {"estado":"ok","servicio":"hampi-api","cache":{"tipo":"redis","aciertos":21676,"fallos":58,"errores":16746,"invalidaciones":0,"tasaAciertos":0.9973}}

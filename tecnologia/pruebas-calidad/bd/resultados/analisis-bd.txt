@@ -1,0 +1,208 @@
+Timing is on.
+Pager usage is off.
+psql:analisis-bd.sql:7: NOTICE:  schema "analisis" does not exist, skipping
+DROP SCHEMA
+Time: 0.234 ms
+CREATE SCHEMA
+Time: 0.684 ms
+SET
+Time: 0.062 ms
+SET
+Time: 0.181 ms
+CREATE TABLE
+Time: 2.243 ms
+INSERT 0 1690200
+Time: 3458.183 ms (00:03.458)
+ALTER TABLE
+Time: 1295.222 ms (00:01.295)
+CREATE TABLE
+Time: 2.760 ms
+INSERT 0 1013774
+Time: 6556.903 ms (00:06.557)
+ANALYZE
+Time: 197.676 ms
+ANALYZE
+Time: 172.747 ms
+ tabla |  filas  | tamano 
+-------+---------+--------
+ citas | 1013774 | 137 MB
+ cupos | 1690200 | 242 MB
+(2 rows)
+
+Time: 130.369 ms
+=== C1. Disponibilidad de un día (HU01) SIN índice de búsqueda ===
+                                                                                                                                 QUERY PLAN                                                                                                                                 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort (actual time=66.528..69.537 rows=9 loops=1)
+   Sort Key: fecha_hora
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=64 read=22564
+   ->  Gather (actual time=66.397..69.526 rows=9 loops=1)
+         Workers Planned: 2
+         Workers Launched: 2
+         Buffers: shared hit=64 read=22564
+         ->  Parallel Seq Scan on cupos (actual time=52.029..55.039 rows=3 loops=3)
+               Filter: ((fecha_hora > '2026-11-05 00:00:00-05'::timestamp with time zone) AND (fecha_hora < '2026-11-06 00:00:00-05'::timestamp with time zone) AND (especialidad_id = 's3'::text) AND (establecimiento_id = 'e7'::text) AND (estado = 'DISPONIBLE'::text))
+               Rows Removed by Filter: 563397
+               Buffers: shared hit=64 read=22564
+ Planning:
+   Buffers: shared hit=27
+ Planning Time: 0.118 ms
+ Execution Time: 69.558 ms
+(16 rows)
+
+Time: 70.168 ms
+=== Se crea el índice parcial del esquema (cupos_busqueda) ===
+CREATE INDEX
+Time: 845.820 ms
+ tamano_indice_parcial 
+-----------------------
+ 20 MB
+(1 row)
+
+Time: 0.487 ms
+=== C1. Disponibilidad de un día (HU01) CON índice parcial ===
+                                                                                                            QUERY PLAN                                                                                                            
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Index Scan using cupos_busqueda on cupos (actual time=0.025..0.030 rows=9 loops=1)
+   Index Cond: ((especialidad_id = 's3'::text) AND (establecimiento_id = 'e7'::text) AND (fecha_hora > '2026-11-05 00:00:00-05'::timestamp with time zone) AND (fecha_hora < '2026-11-06 00:00:00-05'::timestamp with time zone))
+   Buffers: shared read=5
+ Planning:
+   Buffers: shared hit=4 read=1
+ Planning Time: 0.136 ms
+ Execution Time: 0.040 ms
+(7 rows)
+
+Time: 0.491 ms
+=== C2. Calendario: 30 días de cupos libres (fechas) CON índice parcial ===
+                                                                                                                                 QUERY PLAN                                                                                                                                 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort (actual time=0.230..0.240 rows=207 loops=1)
+   Sort Key: fecha_hora
+   Sort Method: quicksort  Memory: 36kB
+   Buffers: shared hit=5 read=31
+   ->  Bitmap Heap Scan on cupos (actual time=0.041..0.196 rows=207 loops=1)
+         Recheck Cond: ((especialidad_id = 's3'::text) AND (establecimiento_id = 'e7'::text) AND (fecha_hora > '2026-11-04 10:00:00-05'::timestamp with time zone) AND (fecha_hora < '2026-12-05 00:00:00-05'::timestamp with time zone) AND (estado = 'DISPONIBLE'::text))
+         Heap Blocks: exact=33
+         Buffers: shared hit=5 read=31
+         ->  Bitmap Index Scan on cupos_busqueda (actual time=0.028..0.028 rows=207 loops=1)
+               Index Cond: ((especialidad_id = 's3'::text) AND (establecimiento_id = 'e7'::text) AND (fecha_hora > '2026-11-04 10:00:00-05'::timestamp with time zone) AND (fecha_hora < '2026-12-05 00:00:00-05'::timestamp with time zone))
+               Buffers: shared hit=3
+ Planning Time: 0.056 ms
+ Execution Time: 0.262 ms
+(13 rows)
+
+Time: 0.542 ms
+=== Comparación: índice completo (no parcial) sobre las mismas columnas ===
+CREATE INDEX
+Time: 1887.342 ms (00:01.887)
+ tamano_indice_completo 
+------------------------
+ 51 MB
+(1 row)
+
+Time: 0.385 ms
+DROP INDEX
+Time: 30.226 ms
+=== C3. RN-10: citas reservadas del paciente SIN índice ===
+                                                      QUERY PLAN                                                       
+-----------------------------------------------------------------------------------------------------------------------
+ Aggregate (actual time=43.595..48.028 rows=1 loops=1)
+   Buffers: shared hit=15835 read=1718 written=51
+   ->  Gather (actual time=43.591..48.022 rows=0 loops=1)
+         Workers Planned: 2
+         Workers Launched: 2
+         Buffers: shared hit=15835 read=1718 written=51
+         ->  Parallel Seq Scan on citas (actual time=32.794..32.795 rows=0 loops=3)
+               Filter: ((paciente_id = '00000000-0000-0000-0000-000000001234'::uuid) AND (estado = 'RESERVADA'::text))
+               Rows Removed by Filter: 337925
+               Buffers: shared hit=15835 read=1718 written=51
+ Planning:
+   Buffers: shared hit=11
+ Planning Time: 0.114 ms
+ Execution Time: 48.057 ms
+(14 rows)
+
+Time: 48.640 ms
+CREATE INDEX
+Time: 454.984 ms
+CREATE INDEX
+Time: 826.081 ms
+CREATE INDEX
+Time: 128.928 ms
+ANALYZE
+Time: 174.142 ms
+=== C3. RN-10: citas reservadas del paciente CON índice citas_paciente ===
+                                                  QUERY PLAN                                                  
+--------------------------------------------------------------------------------------------------------------
+ Aggregate (actual time=0.016..0.017 rows=1 loops=1)
+   Buffers: shared read=3
+   ->  Index Only Scan using citas_un_dia_por_especialidad on citas (actual time=0.014..0.014 rows=0 loops=1)
+         Index Cond: (paciente_id = '00000000-0000-0000-0000-000000001234'::uuid)
+         Heap Fetches: 0
+         Buffers: shared read=3
+ Planning:
+   Buffers: shared hit=23 read=3
+ Planning Time: 0.232 ms
+ Execution Time: 0.032 ms
+(10 rows)
+
+Time: 0.517 ms
+=== C4. RN-02: ¿ya tiene cita en la especialidad ese día? ===
+                                                                                             QUERY PLAN                                                                                              
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit (actual time=0.005..0.005 rows=0 loops=1)
+   Buffers: shared hit=3
+   ->  Nested Loop (actual time=0.004..0.004 rows=0 loops=1)
+         Buffers: shared hit=3
+         ->  Index Scan using citas_un_dia_por_especialidad on citas ci (actual time=0.004..0.004 rows=0 loops=1)
+               Index Cond: (paciente_id = '00000000-0000-0000-0000-000000001234'::uuid)
+               Buffers: shared hit=3
+         ->  Index Scan using cupos_pkey on cupos c (never executed)
+               Index Cond: (id = ci.cupo_id)
+               Filter: ((fecha_hora >= '2026-11-05 00:00:00-05'::timestamp with time zone) AND (fecha_hora < '2026-11-06 00:00:00-05'::timestamp with time zone) AND (especialidad_id = 's3'::text))
+ Planning:
+   Buffers: shared hit=20 read=8
+ Planning Time: 0.280 ms
+ Execution Time: 0.017 ms
+(14 rows)
+
+Time: 0.636 ms
+=== C5. Reserva atómica (RN-01/RN-11): UPDATE condicionado por la clave primaria ===
+Time: 0.320 ms
+BEGIN
+Time: 0.084 ms
+                                      QUERY PLAN                                      
+--------------------------------------------------------------------------------------
+ Update on cupos (actual time=0.064..0.065 rows=0 loops=1)
+   Buffers: shared hit=8 read=4 dirtied=3
+   ->  Index Scan using cupos_pkey on cupos (actual time=0.014..0.015 rows=1 loops=1)
+         Index Cond: (id = 'e7-s3-202611050020'::text)
+         Filter: (estado = 'DISPONIBLE'::text)
+         Buffers: shared hit=2 read=2
+ Planning Time: 0.029 ms
+ Execution Time: 0.122 ms
+(8 rows)
+
+Time: 0.269 ms
+--- Un segundo intento sobre el mismo cupo no actualiza ninguna fila (rowCount = 0 → 409 CUPO_NO_DISPONIBLE)
+UPDATE 0
+Time: 0.123 ms
+ROLLBACK
+Time: 0.137 ms
+=== Uso de índices tras las consultas ===
+ tabla |            indice             | lecturas | tamano  
+-------+-------------------------------+----------+---------
+ citas | citas_paciente                |        0 | 10 MB
+ citas | citas_un_cupo_activo          |        0 | 39 MB
+ citas | citas_un_dia_por_especialidad |        0 | 4400 kB
+ cupos | cupos_busqueda                |        2 | 20 MB
+ cupos | cupos_pkey                    |        0 | 65 MB
+(5 rows)
+
+Time: 1.910 ms
+psql:analisis-bd.sql:100: NOTICE:  drop cascades to 2 other objects
+DETAIL:  drop cascades to table cupos
+drop cascades to table citas
+DROP SCHEMA
+Time: 137.504 ms

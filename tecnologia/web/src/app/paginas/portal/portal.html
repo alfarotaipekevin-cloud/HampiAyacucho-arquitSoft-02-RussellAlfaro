@@ -1,0 +1,32 @@
+<app-barra-portal />
+
+<main class="contenido">
+  @if (usuario(); as u) {
+    <p class="suave">{{ textos.portal.saludo }} {{ u.nombre }}</p>
+  }
+  <h1>{{ textos.portal.titulo }}</h1>
+
+  @if (error()) {
+    <p class="aviso error" role="alert">{{ error() }}</p>
+  }
+  @if (cargando()) {
+    <p class="suave">{{ textos.comun.cargando }}</p>
+  }
+
+  <div class="modulos">
+    @for (modulo of modulos(); track modulo.clave) {
+      <article class="tarjeta modulo" [class.inactivo]="modulo.estado !== 'ACTIVO'">
+        @if (modulo.estado === 'ACTIVO') {
+          <span class="insignia">Disponible</span>
+        } @else {
+          <span class="insignia gris">{{ textos.portal.proximamente }}</span>
+        }
+        <h2>{{ modulo.nombre }}</h2>
+        <p class="suave">{{ modulo.descripcion }}</p>
+        @if (modulo.estado === 'ACTIVO' && modulo.ruta) {
+          <a [routerLink]="modulo.ruta" class="boton secundario">{{ textos.portal.entrar }}</a>
+        }
+      </article>
+    }
+  </div>
+</main>

@@ -1,0 +1,70 @@
+# Blueprint de Render para Hampi Ayacucho (ADR-009). Ver docs/06-scrum/03-guia-de-despliegue.md
+# Render > New > Blueprint > elegir este repositorio. DATABASE_URL se pega a mano (Neon).
+services:
+  - type: web
+    name: hampi-mock-pide-reniec
+    runtime: docker
+    plan: free
+    dockerfilePath: ./tecnologia/simuladores/mock-pide-reniec/Dockerfile
+    dockerContext: ./tecnologia/simuladores/mock-pide-reniec
+    healthCheckPath: /salud
+    buildFilter:
+      paths:
+        - tecnologia/simuladores/mock-pide-reniec/**
+    envVars:
+      - key: PIDE_USUARIO
+        value: "40000000"
+      - key: PIDE_PASSWORD
+        generateValue: true
+      - key: MOCK_LATENCIA_MS
+        value: "200"
+
+  - type: web
+    name: hampi-mock-sms
+    runtime: docker
+    plan: free
+    dockerfilePath: ./tecnologia/simuladores/mock-sms/Dockerfile
+    dockerContext: ./tecnologia/simuladores/mock-sms
+    healthCheckPath: /salud
+    buildFilter:
+      paths:
+        - tecnologia/simuladores/mock-sms/**
+    envVars:
+      - key: SMS_API_KEY
+        generateValue: true
+
+  - type: web
+    name: hampi-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./tecnologia/api/Dockerfile
+    dockerContext: ./tecnologia/api
+    healthCheckPath: /salud
+    buildFilter:
+      paths:
+        - tecnologia/api/**
+    envVars:
+      - key: DATABASE_URL
+        sync: false # cadena de conexión de Neon (incluye ?sslmode=require)
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PIDE_URL
+        sync: false # URL pública de hampi-mock-pide-reniec, p. ej. https://hampi-mock-pide-reniec.onrender.com
+      - key: PIDE_USUARIO
+        value: "40000000"
+      - key: PIDE_PASSWORD
+        fromService:
+          type: web
+          name: hampi-mock-pide-reniec
+          envVarKey: PIDE_PASSWORD
+      - key: SMS_URL
+        sync: false # URL pública de hampi-mock-sms
+      - key: SMS_API_KEY
+        fromService:
+          type: web
+          name: hampi-mock-sms
+          envVarKey: SMS_API_KEY
+      - key: SERVICIOS_TIEMPO_MAXIMO_MS
+        value: "60000" # en el plan gratuito los simuladores tardan en "despertar"
+      - key: CORS_ORIGEN
+        sync: false # URL de Vercel del frontend (Sprint 3), separadas por comas

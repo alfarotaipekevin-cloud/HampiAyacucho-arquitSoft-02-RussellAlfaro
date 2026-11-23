@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  pruebas:
+    name: Pruebas · ${{ matrix.paquete }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        paquete:
+          - tecnologia/boilerplate-clean-arquitecture
+          - tecnologia/simuladores/mock-pide-reniec
+          - tecnologia/simuladores/mock-sms
+          - tecnologia/api
+    defaults:
+      run:
+        working-directory: ${{ matrix.paquete }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ matrix.paquete }}/package-lock.json
+      - run: npm ci
+      - run: npm test
+        if: matrix.paquete != 'tecnologia/api'
+      - name: Jest con reporte de cobertura (API)
+        if: matrix.paquete == 'tecnologia/api'
+        run: npm run test:cobertura
+      - name: Publicar el reporte de cobertura
+        if: matrix.paquete == 'tecnologia/api'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-api
+          path: tecnologia/api/coverage
+          retention-days: 30
+
+  web:
+    name: Compilar la web (Angular)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tecnologia/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tecnologia/web/package-lock.json
+      - run: npm ci
+      - run: npm run build
+
+  docker-compose:
+    name: Docker Compose e integración
+    runs-on: ubuntu-latest
+    needs: [pruebas, web]
+    defaults:
+      run:
+        working-directory: tecnologia
+    steps:
+      - uses: actions/checkout@v4
+      - name: Levantar el entorno
+        run: |
+          cp .env.example .env
+          docker compose up -d --build --wait
+      - name: Verificar los servicios (CA-001-8)
+        run: |
+          curl -fsS http://localhost:4001/salud
+          curl -fsS http://localhost:4002/salud
+          curl -fsS http://localhost:3000/salud | grep '"tipo":"redis"'
+          curl -fsS -X POST http://localhost:4001/reniec/consulta-dni \
+            -H 'Content-Type: application/json' \
+            -d '{"nuDniConsulta":"70000001","nuDniUsuario":"40000000","password":"clave-entidad"}' | grep '"coResultado":"0000"'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tecnologia/api/package-lock.json
+      - name: Pruebas de integración (API + PostgreSQL + simuladores)
+        working-directory: tecnologia/api
+        env:
+          INTEGRACION_BD_DESECHABLE: 'true'
+          DATABASE_URL: postgres://hampi:hampi@localhost:5432/hampi
+          PIDE_URL: http://localhost:4001
+          SMS_URL: http://localhost:4002
+          REDIS_URL: redis://localhost:6379
+        run: |
+          npm ci
+          npm run test:integracion
+      - name: Pruebas de punta a punta (Playwright contra la web en Docker)
+        working-directory: tecnologia/web
+        env:
+          WEB_URL: http://localhost:4200
+          API_URL: http://localhost:3000
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: tecnologia/web/playwright-report
+          retention-days: 7
+      - name: Registros si algo falla
+        if: failure()
+        run: docker compose logs
+      - name: Apagar
+        if: always()
+        run: docker compose down -v

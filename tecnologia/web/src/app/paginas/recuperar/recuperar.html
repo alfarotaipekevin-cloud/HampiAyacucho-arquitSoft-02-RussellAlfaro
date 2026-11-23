@@ -1,0 +1,91 @@
+<app-marco-acceso>
+  <h2>{{ textos.recuperar.titulo }}</h2>
+
+  @if (error()) {
+    <p class="aviso error" role="alert">{{ error() }}</p>
+  }
+
+  @switch (paso()) {
+    @case (1) {
+      <p class="suave">{{ textos.recuperar.paso1 }}</p>
+      <form (ngSubmit)="solicitar()" #paso1="ngForm">
+        <div class="campo">
+          <label for="documento">{{ textos.recuperar.documento }}</label>
+          <input id="documento" name="documento" type="text" inputmode="numeric" maxlength="8" required [(ngModel)]="documento" />
+        </div>
+        <button type="submit" class="primario" [disabled]="enviando() || paso1.invalid">
+          {{ enviando() ? textos.recuperar.enviando : textos.recuperar.enviar }}
+        </button>
+      </form>
+    }
+
+    @case (2) {
+      <p class="suave">{{ textos.recuperar.paso2 }}</p>
+      @if (celular()) {
+        <p class="aviso exito" role="status">SMS enviado al celular {{ celular() }}</p>
+      }
+      <form (ngSubmit)="cambiar()" #paso2="ngForm">
+        <div class="campo">
+          <label for="codigo">{{ textos.recuperar.codigo }}</label>
+          <input
+            id="codigo"
+            name="codigo"
+            type="text"
+            inputmode="numeric"
+            maxlength="6"
+            pattern="\d{6}"
+            autocomplete="one-time-code"
+            required
+            [(ngModel)]="codigo"
+          />
+          <p class="ayuda">{{ textos.recuperar.codigoAyuda }}</p>
+        </div>
+        <div class="campo">
+          <label for="nueva">{{ textos.recuperar.nueva }}</label>
+          <div class="contrasena">
+            <input
+              id="nueva"
+              name="nueva"
+              [type]="verContrasena() ? 'text' : 'password'"
+              minlength="8"
+              autocomplete="new-password"
+              required
+              [(ngModel)]="nueva"
+            />
+            <button
+              type="button"
+              class="ojo"
+              [attr.aria-label]="textos.ingresar.verContrasena"
+              [attr.aria-pressed]="verContrasena()"
+              (click)="verContrasena.set(!verContrasena())"
+            >
+              {{ verContrasena() ? '🙈' : '👁' }}
+            </button>
+          </div>
+          <p class="ayuda">{{ textos.crearCuenta.contrasenaAyuda }}</p>
+        </div>
+        <div class="campo">
+          <label for="repetida">{{ textos.recuperar.repetir }}</label>
+          <input id="repetida" name="repetida" type="password" autocomplete="new-password" required [(ngModel)]="repetida" />
+        </div>
+        <button type="submit" class="primario" [disabled]="enviando() || paso2.invalid">
+          {{ enviando() ? textos.recuperar.cambiando : textos.recuperar.boton }}
+        </button>
+      </form>
+      <p class="centro">
+        <button type="button" class="texto" (click)="pedirOtro()">{{ textos.recuperar.pedirOtro }}</button>
+      </p>
+    }
+
+    @case (3) {
+      <p class="aviso exito" role="status">{{ textos.recuperar.listo }}</p>
+      <a routerLink="/ingresar" class="boton primario">{{ textos.recuperar.volver }}</a>
+    }
+  }
+
+  @if (paso() !== 3) {
+    <p class="centro">
+      <a routerLink="/ingresar">{{ textos.recuperar.volver }}</a>
+    </p>
+  }
+</app-marco-acceso>

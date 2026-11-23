@@ -1,0 +1,74 @@
+<app-barra-portal />
+
+<main class="contenido">
+  @if (error()) {
+    <p class="aviso error" role="alert">{{ error() }}</p>
+  }
+  @if (cargando()) {
+    <p class="suave">{{ textos.comun.cargando }}</p>
+  }
+
+  @if (ficha(); as f) {
+    <h1>{{ recienReservada() ? textos.ficha.titulo : textos.ficha.tituloSimple }}</h1>
+
+    @if (cancelada()) {
+      <p class="aviso exito" role="status">{{ textos.ficha.cancelada }}</p>
+    } @else if (recienReservada()) {
+      @if (f.notificacion === 'ENVIADA') {
+        <p class="aviso exito" role="status">{{ textos.ficha.aviso }}</p>
+      } @else {
+        <p class="aviso info" role="status">{{ textos.ficha.avisoPendiente }}</p>
+      }
+    }
+
+    <section class="tarjeta">
+      <img class="ficha-qr" [src]="f.qr" [alt]="'Código QR de la cita ' + f.codigo" />
+      <p class="ficha-codigo">{{ f.codigo }}</p>
+
+      <ul class="datos">
+        <li>
+          <span class="etiqueta">{{ textos.ficha.paciente }}</span
+          ><span class="valor">{{ f.paciente }}</span>
+        </li>
+        <li>
+          <span class="etiqueta">{{ textos.ficha.especialidad }}</span
+          ><span class="valor">{{ f.especialidad }}</span>
+        </li>
+        <li>
+          <span class="etiqueta">{{ textos.ficha.establecimiento }}</span
+          ><span class="valor">{{ f.establecimiento }}</span>
+        </li>
+        <li>
+          <span class="etiqueta">{{ textos.ficha.fechaHora }}</span
+          ><span class="valor">{{ fechaHoraLarga(f.fechaHora) }}</span>
+        </li>
+        <li>
+          <span class="etiqueta">{{ textos.ficha.consultorio }}</span
+          ><span class="valor">{{ f.consultorio }} · {{ f.medico }}</span>
+        </li>
+        <li>
+          <span class="etiqueta">{{ textos.ficha.estado }}</span>
+          <span class="insignia" [class.roja]="f.estado === 'CANCELADA'">{{ estados[f.estado] ?? f.estado }}</span>
+        </li>
+      </ul>
+
+      <p class="suave centro">{{ textos.ficha.recordatorio }}</p>
+
+      <div class="fila" style="margin-top: 16px">
+        <button type="button" class="secundario" [disabled]="descargando()" (click)="descargar()">
+          {{ descargando() ? textos.ficha.descargando : textos.ficha.descargar }}
+        </button>
+        @if (sePuedeCancelar) {
+          <button type="button" class="peligro" [disabled]="cancelando()" (click)="cancelar()">
+            {{ cancelando() ? textos.ficha.cancelando : textos.ficha.cancelar }}
+          </button>
+        }
+      </div>
+    </section>
+
+    <p class="fila" style="margin-top: 16px">
+      <a routerLink="/citas" class="boton secundario">{{ textos.ficha.misCitas }}</a>
+      <a routerLink="/portal" class="boton secundario">{{ textos.ficha.volver }}</a>
+    </p>
+  }
+</main>

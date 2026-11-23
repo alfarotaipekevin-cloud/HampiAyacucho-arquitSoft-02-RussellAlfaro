@@ -1,0 +1,50 @@
+[
+  {
+    "pantalla": "Ingresar",
+    "criticas": 0,
+    "graves": 0,
+    "moderadas": 0,
+    "leves": 0,
+    "reglas": []
+  },
+  {
+    "pantalla": "Crear cuenta",
+    "criticas": 0,
+    "graves": 0,
+    "moderadas": 0,
+    "leves": 0,
+    "reglas": []
+  },
+  {
+    "pantalla": "Recuperar contraseña",
+    "criticas": 0,
+    "graves": 0,
+    "moderadas": 0,
+    "leves": 0,
+    "reglas": []
+  },
+  {
+    "pantalla": "Portal",
+    "criticas": 0,
+    "graves": 0,
+    "moderadas": 0,
+    "leves": 0,
+    "reglas": []
+  },
+  {
+    "pantalla": "Mis citas",
+    "criticas": 0,
+    "graves": 0,
+    "moderadas": 0,
+    "leves": 0,
+    "reglas": []
+  },
+  {
+    "pantalla": "Reservar cita (paso 1)",
+    "criticas": 0,
+    "graves": 0,
+    "moderadas": 0,
+    "leves": 0,
+    "reglas": []
+  }
+]

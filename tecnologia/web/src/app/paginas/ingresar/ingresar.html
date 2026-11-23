@@ -1,0 +1,68 @@
+<app-marco-acceso>
+  <h2>{{ textos.ingresar.titulo }}</h2>
+  <p class="suave">{{ textos.ingresar.ayuda }}</p>
+
+  @if (expirada()) {
+    <p class="aviso info" role="status">{{ textos.ingresar.sesionExpirada }}</p>
+  }
+  @if (error()) {
+    <p class="aviso error" role="alert">{{ error() }}</p>
+  }
+
+  <form (ngSubmit)="ingresar()" #formulario="ngForm">
+    <div class="campo">
+      <label for="documento">{{ textos.ingresar.documento }}</label>
+      <input
+        id="documento"
+        name="documento"
+        type="text"
+        inputmode="numeric"
+        autocomplete="username"
+        maxlength="8"
+        required
+        [(ngModel)]="documento"
+      />
+    </div>
+
+    <div class="campo">
+      <label for="contrasena">{{ textos.ingresar.contrasena }}</label>
+      <div class="contrasena">
+        <input
+          id="contrasena"
+          name="contrasena"
+          [type]="verContrasena() ? 'text' : 'password'"
+          autocomplete="current-password"
+          required
+          [(ngModel)]="contrasena"
+        />
+        <button
+          type="button"
+          class="ojo"
+          [attr.aria-label]="textos.ingresar.verContrasena"
+          [attr.aria-pressed]="verContrasena()"
+          (click)="verContrasena.set(!verContrasena())"
+        >
+          {{ verContrasena() ? '🙈' : '👁' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="campo casilla">
+      <input id="recordar" name="recordar" type="checkbox" [(ngModel)]="recordar" />
+      <label for="recordar">{{ textos.ingresar.recordar }}</label>
+    </div>
+
+    <button type="submit" class="primario" [disabled]="enviando() || formulario.invalid">
+      {{ enviando() ? textos.comun.cargando : textos.ingresar.boton }}
+    </button>
+  </form>
+
+  <p class="centro">
+    <a routerLink="/recuperar">{{ textos.ingresar.olvide }}</a>
+  </p>
+  <hr />
+  <p class="centro suave">
+    {{ textos.ingresar.sinCuenta }}<br />
+    <a routerLink="/crear-cuenta" class="boton secundario">{{ textos.ingresar.crear }}</a>
+  </p>
+</app-marco-acceso>
