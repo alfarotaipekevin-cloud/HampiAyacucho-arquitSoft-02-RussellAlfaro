@@ -111,6 +111,8 @@ test.describe('Paciente', () => {
     // Paso a paso: especialidad → establecimiento → día → hora → confirmar.
     await page.getByRole('button', { name: 'Pediatría' }).click();
     await page.getByRole('button', { name: /Hospital Regional de Ayacucho/ }).click();
+    // La pantalla cambia al calendario cuando llegan las fechas; antes, .opciones aún son los establecimientos.
+    await expect(page.getByRole('heading', { name: 'Elige el día' })).toBeVisible();
     await page.locator('.opciones button').nth(1).click();
     await page.locator('.opciones.horas button').first().click();
     await expect(page.getByRole('heading', { name: 'Revisa tu cita antes de confirmar' })).toBeVisible();
@@ -145,6 +147,7 @@ test.describe('Paciente', () => {
     await page.goto('/citas/reservar');
     await page.getByRole('button', { name: 'Odontología' }).click();
     await page.getByRole('button', { name: /San Juan Bautista/ }).click();
+    await expect(page.getByRole('heading', { name: 'Elige el día' })).toBeVisible();
     // El segundo día de la lista siempre tiene todos sus cupos por delante.
     await page.locator('.opciones button').nth(1).click();
     await page.locator('.opciones.horas button').first().click();

@@ -40,23 +40,31 @@ export class CuposConCacheRepository implements RepositorioCupos {
     const dias: string[] = [];
     for (let d = diaEnLima(desde); inicioDelDiaEnLima(d) < hasta; d = diaEnLima(sumarDias(inicioDelDiaEnLima(d), 1))) dias.push(d);
 
-    const porDia = await Promise.all(dias.map((dia) => this.cuposDelDia(especialidadId, establecimientoId, dia)));
-    return porDia.flat()
+    const claves = dias.map((dia) => claveCuposDelDia(especialidadId, establecimientoId, dia));
+    const enCache = await Promise.all(claves.map((clave) => this.leer(clave)));
+    const porDia = new Map<string, DatosCupo[]>();
+    enCache.forEach((valor, i) => {
+      if (valor) porDia.set(dias[i], valor.map((c) => ({ ...c, fechaHora: new Date(c.fechaHora) })));
+    });
+
+    // Días que faltan (MISS): UNA sola consulta a PostgreSQL para todo el tramo, y se guarda cada día por separado.
+    const faltan = dias.filter((dia) => !porDia.has(dia));
+    if (faltan.length) {
+      const inicio = inicioDelDiaEnLima(faltan[0]);
+      const fin = sumarDias(inicioDelDiaEnLima(faltan[faltan.length - 1]), 1);
+      // (inicio - 1 ms, fin): incluye un cupo que empiece justo a las 00:00.
+      const cupos = await this.interno.disponibles(especialidadId, establecimientoId, new Date(inicio.getTime() - 1), fin);
+      for (const dia of faltan) porDia.set(dia, []);
+      for (const c of cupos) porDia.get(diaEnLima(c.fechaHora))?.push(c.instantanea());
+      await Promise.all(faltan.map((dia) => this.escribir(
+        claveCuposDelDia(especialidadId, establecimientoId, dia),
+        porDia.get(dia)!.map((c) => ({ ...c, fechaHora: c.fechaHora.toISOString() })),
+      )));
+    }
+
+    return dias.flatMap((dia) => porDia.get(dia)!)
       .filter((c) => c.fechaHora > desde && c.fechaHora < hasta)
       .map((c) => new Cupo(c));
-  }
-
-  private async cuposDelDia(especialidadId: string, establecimientoId: string, dia: string): Promise<DatosCupo[]> {
-    const clave = claveCuposDelDia(especialidadId, establecimientoId, dia);
-    const enCache = await this.leer(clave);
-    if (enCache) return enCache.map((c) => ({ ...c, fechaHora: new Date(c.fechaHora) }));
-
-    const inicio = inicioDelDiaEnLima(dia);
-    // (inicio - 1 ms, fin del día): incluye un cupo que empiece justo a las 00:00.
-    const cupos = await this.interno.disponibles(especialidadId, establecimientoId, new Date(inicio.getTime() - 1), sumarDias(inicio, 1));
-    const datos = cupos.map((c) => c.instantanea());
-    await this.escribir(clave, datos.map((c) => ({ ...c, fechaHora: c.fechaHora.toISOString() })));
-    return datos;
   }
 
   private async leer(clave: string) {

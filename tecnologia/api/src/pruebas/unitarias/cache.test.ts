@@ -69,7 +69,9 @@ describe('CuposConCacheRepository (cache-aside)', () => {
     const r = await e.cupos.disponibles('ped', 'hra', DIA.desde, new Date('2026-11-07T00:00:00-05:00'));
     expect(ids(r)).toEqual(['c1', 'c2', 'c3', 'c4']);
     expect(r[0].fechaHora).toBeInstanceOf(Date);
-    expect(e.consultas.n).toBe(2);
+    expect(e.consultas.n).toBe(1); // los días que faltan se piden en una sola consulta
+    expect(ids(await e.cupos.disponibles('ped', 'hra', new Date('2026-11-06T00:00:00-05:00'), new Date('2026-11-07T00:00:00-05:00')))).toEqual(['c4']);
+    expect(e.consultas.n).toBe(1); // y luego cada día sale de su propia clave
   });
 
   test('al reservar se invalida la clave del día y el cupo ocupado deja de aparecer (RN-01)', async () => {

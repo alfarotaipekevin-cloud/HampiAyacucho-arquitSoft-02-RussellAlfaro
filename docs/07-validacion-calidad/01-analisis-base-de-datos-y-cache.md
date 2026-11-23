@@ -77,6 +77,7 @@ Pruebas que lo verifican contra PostgreSQL real: `pruebas/integracion/postgres.t
 | Qué se guarda | Los cupos **libres de un día completo** por especialidad y establecimiento. |
 | Clave | `hampi:cupos:{especialidad}:{establecimiento}:{AAAA-MM-DD}` (no depende de la hora de la consulta, así la reutilizan todos los pacientes). |
 | Tiempo de vida (TTL) | 60 segundos, como red de seguridad. |
+| Calendario de 30 días | Se leen las 30 claves de Redis a la vez; los días que faltan se piden a PostgreSQL en **una sola consulta** (no una por día) y se guardan por separado. |
 | Invalidación | Al **reservar** o **cancelar**, se borra la clave de ese día. También si la reserva pierde la carrera (409). |
 | Si Redis falla | Se lee de PostgreSQL y la API sigue respondiendo (EQ-02). |
 | Dónde vive en el código | Dos decoradores en `modules/citas/infraestructura/cache-cupos.ts`. Los casos de uso **no saben** que existe la caché (la prueba EQ-06 lo comprueba). |
