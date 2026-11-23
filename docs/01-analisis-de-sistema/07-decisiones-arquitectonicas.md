@@ -13,6 +13,8 @@ Un **ADR (Architecture Decision Record)** documenta una decisión importante del
 | **ADR-005** | Autenticación 2FA, RBAC y auditoría | DA02 - Seguridad | Proteger los datos de salud conforme a la Ley 29733 y la Ley 26842. | JWT + segundo factor, roles por actor y bitácora de accesos a la HCE. |
 | **ADR-006** | Integración con PIDE, RENHICE y mensajería mediante interfaces y adaptadores | DA04 - Integración externa | Desacoplar los casos de uso de los servicios del Estado, que pueden cambiar de versión o caerse. | Contratos (puertos) en el dominio y adaptadores en infraestructura. |
 | **ADR-007** | Réplica de lectura y múltiples instancias | DA05 - Disponibilidad | Evitar que reportes y consultas bloqueen el registro de citas. | Base de datos principal para escritura, réplica para lectura y balanceador de carga. |
+| **ADR-008** | Simuladores de servicios externos y entorno con Docker Compose | DA04 - Integración externa | Sin acceso a la PIDE ni a un proveedor de SMS en un proyecto académico; todo el equipo necesita el mismo entorno. | Servicios `mock-pide-reniec` y `mock-sms` en contenedores, junto a PostgreSQL. |
+| **ADR-009** | Despliegue en la nube con planes gratuitos | DA05 - Disponibilidad | Presentar el sistema desde una URL pública con HTTPS sin costo. | Vercel (web) · Render (API y simuladores, `render.yaml`) · Neon (PostgreSQL). |
 
 ---
 
@@ -41,3 +43,16 @@ Un **ADR (Architecture Decision Record)** documenta una decisión importante del
 - **Alternativas evaluadas:** llamar a los servicios directamente desde los casos de uso, usar puertos y adaptadores.
 - **Decisión:** Definir contratos (`ValidadorIdentidad`, `RepositorioNacionalHCE`, `Notificador`) en el dominio e implementarlos con adaptadores en infraestructura.
 - **Consecuencias:** (+) Se pueden usar adaptadores simulados en pruebas y cambiar de proveedor sin tocar el dominio. (−) Una capa adicional de traducción de datos.
+
+### ADR-008: Simuladores de servicios externos y Docker Compose
+- **Contexto:** Un proyecto académico no tiene credenciales de la PIDE ni contrato con un proveedor de SMS, pero el flujo de reserva depende de ambos (RC04).
+- **Alternativas evaluadas:** adaptadores en memoria dentro del backend (como el boilerplate), servicios simulados aparte, sandbox de un proveedor comercial.
+- **Decisión:** Servicios simulados aparte, con el mismo estilo de contrato que el real, levantados con Docker Compose junto a PostgreSQL. Los adaptadores en memoria se mantienen para las pruebas unitarias.
+- **Consecuencias:** (+) El backend usa HTTP real hacia los servicios externos y se pueden probar fallas (503) y latencia; pasar al servicio real solo cambia la URL y el adaptador. (−) Dos servicios más que mantener; el contrato simulado puede diferir del real (p. ej. SOAP de la PIDE).
+
+### ADR-009: Despliegue en la nube con planes gratuitos
+- **Contexto:** El sistema debe presentarse desde una URL pública con HTTPS y el proyecto no tiene presupuesto.
+- **Alternativas evaluadas:** (A) Vercel + Render + Neon, (B) Railway, (C) VPS con Docker Compose. Ver `docs/06-scrum/00-roadmap-y-despliegue.md`.
+- **Decisión:** Opción A, aprobada por el Product Owner el 2026-10-23.
+- **Consecuencias:** (+) Costo cero, HTTPS automático y despliegue al hacer push. (−) El plan gratuito de Render suspende el servicio inactivo y la primera petición tarda unos 30 a 60 s.
+- **Estado:** aprobado. Configuración en `render.yaml` y pasos en `docs/06-scrum/03-guia-de-despliegue.md`.

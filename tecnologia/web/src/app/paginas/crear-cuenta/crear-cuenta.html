@@ -1,0 +1,93 @@
+<app-marco-acceso>
+  <h2>{{ textos.crearCuenta.titulo }}</h2>
+
+  @if (error()) {
+    <p class="aviso error" role="alert">{{ error() }}</p>
+  }
+
+  @switch (paso()) {
+    @case (1) {
+      <p class="suave">{{ textos.crearCuenta.paso1 }}</p>
+      <form (ngSubmit)="verificar()" #paso1="ngForm">
+        <div class="campo">
+          <label for="dni">{{ textos.crearCuenta.documento }}</label>
+          <input id="dni" name="dni" type="text" inputmode="numeric" maxlength="8" pattern="\d{8}" required [(ngModel)]="dni" />
+        </div>
+        <div class="campo">
+          <label for="nacimiento">{{ textos.crearCuenta.fechaNacimiento }}</label>
+          <input id="nacimiento" name="nacimiento" type="date" required [(ngModel)]="fechaNacimiento" />
+        </div>
+        <button type="submit" class="primario" [disabled]="enviando() || paso1.invalid">
+          {{ enviando() ? textos.crearCuenta.verificando : textos.crearCuenta.verificar }}
+        </button>
+      </form>
+    }
+
+    @case (2) {
+      <p class="suave">{{ textos.crearCuenta.paso2 }}</p>
+      <p class="aviso exito">
+        {{ textos.crearCuenta.hola }} <strong>{{ nombre() }}</strong>
+      </p>
+      <form (ngSubmit)="crear()" #paso2="ngForm">
+        <div class="campo">
+          <label for="celular">{{ textos.crearCuenta.celular }}</label>
+          <input id="celular" name="celular" type="tel" inputmode="numeric" maxlength="9" pattern="9\d{8}" required [(ngModel)]="celular" />
+          <p class="ayuda">{{ textos.crearCuenta.celularAyuda }}</p>
+        </div>
+        <div class="campo">
+          <label for="correo">{{ textos.crearCuenta.correo }}</label>
+          <input id="correo" name="correo" type="email" [(ngModel)]="correo" />
+        </div>
+        <div class="campo">
+          <label for="clave">{{ textos.crearCuenta.contrasena }}</label>
+          <div class="contrasena">
+            <input
+              id="clave"
+              name="clave"
+              [type]="verContrasena() ? 'text' : 'password'"
+              minlength="8"
+              autocomplete="new-password"
+              required
+              [(ngModel)]="contrasena"
+            />
+            <button
+              type="button"
+              class="ojo"
+              [attr.aria-label]="textos.ingresar.verContrasena"
+              [attr.aria-pressed]="verContrasena()"
+              (click)="verContrasena.set(!verContrasena())"
+            >
+              {{ verContrasena() ? '🙈' : '👁' }}
+            </button>
+          </div>
+          <p class="ayuda">{{ textos.crearCuenta.contrasenaAyuda }}</p>
+        </div>
+        <div class="campo">
+          <label for="repetida">{{ textos.crearCuenta.repetir }}</label>
+          <input id="repetida" name="repetida" type="password" autocomplete="new-password" required [(ngModel)]="repetida" />
+        </div>
+        <div class="campo casilla">
+          <input id="acepta" name="acepta" type="checkbox" required [(ngModel)]="acepta" />
+          <label for="acepta">{{ textos.crearCuenta.consentimiento }}</label>
+        </div>
+        <button type="submit" class="primario" [disabled]="enviando() || paso2.invalid">
+          {{ enviando() ? textos.crearCuenta.creando : textos.crearCuenta.boton }}
+        </button>
+      </form>
+      <p class="centro">
+        <button type="button" class="texto" (click)="volverAlPaso1()">{{ textos.crearCuenta.cambiarDocumento }}</button>
+      </p>
+    }
+
+    @case (3) {
+      <p class="aviso exito" role="status">{{ textos.crearCuenta.listo }}</p>
+      <a routerLink="/ingresar" class="boton primario">{{ textos.crearCuenta.volver }}</a>
+    }
+  }
+
+  @if (paso() !== 3) {
+    <p class="centro">
+      <a routerLink="/ingresar">{{ textos.crearCuenta.volver }}</a>
+    </p>
+  }
+</app-marco-acceso>

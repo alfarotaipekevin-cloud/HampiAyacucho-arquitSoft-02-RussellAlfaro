@@ -1,0 +1,47 @@
+[
+  {
+    "nuDni": "70000001",
+    "prenombres": "MARÍA ELENA",
+    "apPrimer": "QUISPE",
+    "apSegundo": "HUAMÁN",
+    "feNacimiento": "1990-04-15",
+    "ubigeo": "050101",
+    "restriccion": null
+  },
+  {
+    "nuDni": "70000002",
+    "prenombres": "JOSÉ LUIS",
+    "apPrimer": "HUAMÁN",
+    "apSegundo": "CÁRDENAS",
+    "feNacimiento": "1985-11-02",
+    "ubigeo": "050101",
+    "restriccion": null
+  },
+  {
+    "nuDni": "70000003",
+    "prenombres": "ROSA",
+    "apPrimer": "PARIONA",
+    "apSegundo": "GAMBOA",
+    "feNacimiento": "2015-07-20",
+    "ubigeo": "050401",
+    "restriccion": null
+  },
+  {
+    "nuDni": "70000004",
+    "prenombres": "CARLOS",
+    "apPrimer": "CCAHUANA",
+    "apSegundo": "ORE",
+    "feNacimiento": "1970-01-30",
+    "ubigeo": "050101",
+    "restriccion": "FALLECIDO"
+  },
+  {
+    "nuDni": "70000099",
+    "prenombres": "PERSONAL DE SALUD",
+    "apPrimer": "DEMO",
+    "apSegundo": "HAMPI",
+    "feNacimiento": "1988-08-08",
+    "ubigeo": "050101",
+    "restriccion": null
+  }
+]

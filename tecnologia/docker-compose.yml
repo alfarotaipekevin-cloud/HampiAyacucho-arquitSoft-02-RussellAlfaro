@@ -1,0 +1,113 @@
+# Hampi Ayacucho · entorno local (ver docs/06-scrum/00-roadmap-y-despliegue.md)
+# Uso: cd tecnologia && cp .env.example .env && docker compose up --build
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: hampi
+      POSTGRES_USER: ${POSTGRES_USER:-hampi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hampi}
+    ports:
+      - "5432:5432"
+    volumes:
+      - datos-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hampi} -d hampi"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ADR-004: caché distribuida de cupos, compartida por todas las instancias de la API
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru", "--save", ""]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  mock-pide-reniec:
+    build: ./simuladores/mock-pide-reniec
+    environment:
+      PIDE_USUARIO: ${PIDE_USUARIO:-40000000}
+      PIDE_PASSWORD: ${PIDE_PASSWORD:-clave-entidad}
+      MOCK_LATENCIA_MS: ${MOCK_LATENCIA_MS:-200}
+      MOCK_FALLA: ${PIDE_MOCK_FALLA:-false}
+    ports:
+      - "4001:4001"
+
+  mock-sms:
+    build: ./simuladores/mock-sms
+    environment:
+      SMS_API_KEY: ${SMS_API_KEY:-clave-sms-local}
+      MOCK_FALLA: ${SMS_MOCK_FALLA:-false}
+    ports:
+      - "4002:4002"
+
+  api:
+    build: ./api
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-hampi}:${POSTGRES_PASSWORD:-hampi}@db:5432/hampi
+      JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en .env (ver .env.example)}
+      PIDE_URL: http://mock-pide-reniec:4001
+      PIDE_USUARIO: ${PIDE_USUARIO:-40000000}
+      PIDE_PASSWORD: ${PIDE_PASSWORD:-clave-entidad}
+      SMS_URL: http://mock-sms:4002
+      SMS_API_KEY: ${SMS_API_KEY:-clave-sms-local}
+      CORS_ORIGEN: ${CORS_ORIGEN:-http://localhost:4200}
+      REDIS_URL: redis://redis:6379
+      CACHE_DESACTIVADA: ${CACHE_DESACTIVADA:-false}
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mock-pide-reniec:
+        condition: service_started
+      mock-sms:
+        condition: service_started
+
+  # EQ-02 / ADR-007: segunda instancia y balanceador. Uso: docker compose --profile alta-disponibilidad up
+  api-2:
+    profiles: ["alta-disponibilidad"]
+    build: ./api
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-hampi}:${POSTGRES_PASSWORD:-hampi}@db:5432/hampi
+      JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en .env (ver .env.example)}
+      PIDE_URL: http://mock-pide-reniec:4001
+      PIDE_USUARIO: ${PIDE_USUARIO:-40000000}
+      PIDE_PASSWORD: ${PIDE_PASSWORD:-clave-entidad}
+      SMS_URL: http://mock-sms:4002
+      SMS_API_KEY: ${SMS_API_KEY:-clave-sms-local}
+      CORS_ORIGEN: ${CORS_ORIGEN:-http://localhost:4200}
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      api:
+        condition: service_healthy
+
+  balanceador:
+    profiles: ["alta-disponibilidad"]
+    image: nginx:1.27-alpine
+    volumes:
+      - ./pruebas-calidad/disponibilidad/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "8080:8080"
+    depends_on:
+      - api
+      - api-2
+
+  web:
+    build: ./web
+    ports:
+      - "4200:80"
+    depends_on:
+      api:
+        condition: service_started
+
+volumes:
+  datos-db:

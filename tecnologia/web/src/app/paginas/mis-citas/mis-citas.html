@@ -1,0 +1,54 @@
+<app-barra-portal />
+
+<section class="cabecera-pagina">
+  <div class="interior con-accion">
+    <div>
+      <h1>{{ textos.misCitas.titulo }}</h1>
+      <p>{{ textos.misCitas.bajada }}</p>
+    </div>
+    <a routerLink="/citas/reservar" class="boton claro">+ {{ textos.misCitas.reservar }}</a>
+  </div>
+</section>
+
+<main class="contenido pagina-flotante">
+  @if (error()) {
+    <p class="aviso error" role="alert">{{ error() }}</p>
+  }
+  @if (cargando()) {
+    <p class="suave tarjeta">{{ textos.comun.cargando }}</p>
+  }
+
+  @if (todas().length > 0) {
+    <div class="filtros tarjeta" role="group">
+      @for (f of filtros; track f.clave) {
+        <button type="button" class="filtro" [attr.aria-pressed]="filtro() === f.clave" (click)="filtro.set(f.clave)">
+          {{ f.nombre }}
+        </button>
+      }
+    </div>
+  } @else if (!cargando()) {
+    <div class="tarjeta vacio-grande">
+      <span class="emoji" aria-hidden="true">📅</span>
+      <p>{{ textos.misCitas.vacio }}</p>
+    </div>
+  }
+
+  <div class="citas">
+    @for (c of visibles(); track c.citaId) {
+      <article class="tarjeta cita" [class.apagada]="c.estado !== 'RESERVADA'">
+        <div class="calendario-dia" aria-hidden="true">
+          <span class="mes">{{ partesDelDia(c.fechaHora.slice(0, 10)).mes }}</span>
+          <span class="dia">{{ partesDelDia(c.fechaHora.slice(0, 10)).dia }}</span>
+        </div>
+        <div class="cita-datos">
+          <span class="insignia" [class.gris]="c.estado !== 'RESERVADA'" [class.roja]="c.estado === 'CANCELADA'">{{
+            estados[c.estado] ?? c.estado
+          }}</span>
+          <h2>{{ c.especialidad }}</h2>
+          <p class="suave">{{ c.establecimiento }}<br />{{ fechaHoraLarga(c.fechaHora) }} · {{ c.codigo }}</p>
+        </div>
+        <a [routerLink]="['/citas', c.citaId]" class="boton secundario">{{ textos.misCitas.verFicha }}</a>
+      </article>
+    }
+  </div>
+</main>

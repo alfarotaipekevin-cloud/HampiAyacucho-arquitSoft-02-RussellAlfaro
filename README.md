@@ -21,10 +21,18 @@ Docente: Ing. Lizbeth Jaico Quispe
 │   ├── 02-arquitectura-software/    Arquitectura inicial, estilo, enfoque y componentes
 │   ├── 03-diseño-de-software/
 │   │   └── diseño-interno/          Diseño interno de módulos, patrones y principios SOLID
-│   └── 04-modelo-c4/                Niveles 1 a 4 del modelo C4
+│   ├── 04-modelo-c4/                Niveles 1 a 4 del modelo C4
+│   ├── 05-desarrollo-sdd/           Constitución SDD y especificaciones (specs) del módulo de citas
+│   ├── 06-scrum/                    Roadmap y despliegue, product backlog, DoR/DoD y sprints
+│   └── 07-validacion-calidad/       Sprint 2 del curso: BD y caché, Jest y cobertura, validación EQ-01…EQ-06
 ├── img/                             Diagramas (PNG) y sus fuentes editables en img/fuentes (Mermaid)
-└── tecnologia/
-    └── boilerplate-clean-arquitecture/   Ejemplo ejecutable del módulo Citas con Clean Architecture
+├── .github/workflows/ci.yml         CI: pruebas de cada paquete y verificación de Docker Compose
+└── tecnologia/                      Ver tecnologia/README.md
+    ├── boilerplate-clean-arquitecture/   Ejemplo ejecutable del módulo Citas con Clean Architecture
+    ├── api/                         Backend: Identidad, Portal y Citas (Node.js + Express + PostgreSQL)
+    ├── simuladores/                 Simuladores de la PIDE/RENIEC y del proveedor de SMS
+    ├── pruebas-calidad/             k6 (hasta 2,000 usuarios), balanceador y análisis de la BD
+    └── docker-compose.yml           Entorno local (PostgreSQL + Redis + simuladores + API + web)
 ```
 
 ## Documentación
@@ -65,6 +73,35 @@ Docente: Ing. Lizbeth Jaico Quispe
 | C3 · Componentes | [Nivel3-Diagrama-de-Componentes.md](docs/04-modelo-c4/Nivel3-Diagrama-de-Componentes.md) |
 | C4 · Código | [Nivel4-DiagramadeCodigo.md](docs/04-modelo-c4/Nivel4-DiagramadeCodigo.md) |
 
+### 5. Desarrollo guiado por especificaciones (SDD)
+
+Alcance actual: **módulo de reserva de citas** y acceso al portal.
+
+| Documento | Contenido |
+| :--- | :--- |
+| [00-constitucion.md](docs/05-desarrollo-sdd/00-constitucion.md) | Proceso SDD, principios, stack y convenciones |
+| [Índice de specs](docs/05-desarrollo-sdd/README.md) | 001 APIs simuladas · 002 Identidad · 003 Portal · 004 Disponibilidad · 005 Reserva y ficha QR · 006 Caché, OpenAPI y validación |
+
+### 6. Scrum
+
+| Documento | Contenido |
+| :--- | :--- |
+| [00-roadmap-y-despliegue.md](docs/06-scrum/00-roadmap-y-despliegue.md) | Secuencia de sprints, arquitectura de despliegue y opciones de nube |
+| [01-product-backlog.md](docs/06-scrum/01-product-backlog.md) | Backlog priorizado (MoSCoW) y trazabilidad HU → RF → spec |
+| [02-definicion-de-listo-y-terminado.md](docs/06-scrum/02-definicion-de-listo-y-terminado.md) | Definition of Ready y Definition of Done |
+| [03-guia-de-despliegue.md](docs/06-scrum/03-guia-de-despliegue.md) | Despliegue en Neon, Render y Vercel (ADR-009) |
+| [Sprint 0](docs/06-scrum/sprint-00/sprint-backlog.md) · [Sprint 1](docs/06-scrum/sprint-01/sprint-backlog.md) · [Sprint 2](docs/06-scrum/sprint-02/sprint-backlog.md) · [Sprint 3](docs/06-scrum/sprint-03/sprint-backlog.md) · [Sprint 4](docs/06-scrum/sprint-04/sprint-backlog.md) | Sprint backlog, review y retrospectiva |
+
+### 7. Implementación y validación de la arquitectura (Sprint 2 del curso)
+
+| Documento | Contenido |
+| :--- | :--- |
+| [00-resumen-sprint-2.md](docs/07-validacion-calidad/00-resumen-sprint-2.md) | Actividades y entregables de la guía, con su evidencia |
+| [01-analisis-base-de-datos-y-cache.md](docs/07-validacion-calidad/01-analisis-base-de-datos-y-cache.md) | `EXPLAIN ANALYZE` con 1.7 M de cupos, índices, concurrencia y caché Redis (ADR-004) |
+| [02-pruebas-automatizadas-jest.md](docs/07-validacion-calidad/02-pruebas-automatizadas-jest.md) | 125 pruebas, cobertura de la API (94.6 % de líneas) y CI en GitHub Actions |
+| [03-validacion-atributos-calidad.md](docs/07-validacion-calidad/03-validacion-atributos-calidad.md) | Resultados de EQ-01 a EQ-06 (k6 con 2,000 usuarios, Jest, axe-core) |
+| API documentada | <http://localhost:3000/api/docs> (Swagger UI) |
+
 ## Stack tecnológico propuesto
 
 Angular (frontend) · Node.js + Express + TypeScript (backend, monolito modular) · PostgreSQL con réplica de lectura · Redis (caché) · Git/GitHub con Conventional Commits.
@@ -75,4 +112,12 @@ Angular (frontend) · Node.js + Express + TypeScript (backend, monolito modular)
 cd tecnologia/boilerplate-clean-arquitecture
 npm install
 npm test      # 8 pruebas del módulo Citas
+```
+
+Entorno local completo (Sprint 2):
+
+```bash
+cd tecnologia
+cp .env.example .env
+docker compose up --build   # API (:3000) + PostgreSQL + PIDE/RENIEC (:4001) + SMS (:4002)
 ```
