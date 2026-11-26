@@ -11,7 +11,7 @@ import { TEXTOS } from '../nucleo/textos';
           <div class="marca-acceso">
             <svg class="isotipo" viewBox="0 0 40 40" aria-hidden="true">
               <circle cx="20" cy="20" r="20" fill="#ffffff" />
-              <path d="M16 9h8v7h7v8h-7v7h-8v-7H9v-8h7z" fill="#0b6e4f" />
+              <path d="M16 9h8v7h7v8h-7v7h-8v-7H9v-8h7z" fill="#5f295b" />
             </svg>
             <span>{{ textos.marca.nombre }}</span>
           </div>

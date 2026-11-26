@@ -1,9 +1,14 @@
 /* Estilos comunes de Hampi Ayacucho. Paleta sobria, inspirada en los portales del Estado peruano. */
 :root {
-  --verde: #0b6e4f;
-  --verde-oscuro: #075239;
-  --verde-claro: #e6f2ed;
-  /* Colores del logo del Hospital Regional de Ayacucho (pantallas de acceso) */
+  /* Paleta tomada del logo del Hospital Regional de Ayacucho */
+  --primario: #84397c;
+  --primario-osc: #5f295b;
+  --primario-claro: #f6eaf3;
+  /* Verde solo para estados de éxito (cita reservada, disponible, llegada válida) */
+  --exito: #0b6e4f;
+  --exito-osc: #075239;
+  --exito-claro: #e6f2ed;
+  /* Detalles del logo */
   --morado: #5f295b;
   --morado-medio: #84397c;
   --morado-osc: #3a1538;
@@ -46,7 +51,7 @@ h2 {
   font-size: 1.25rem;
 }
 a {
-  color: var(--verde);
+  color: var(--primario);
 }
 
 /* Formularios */
@@ -84,7 +89,7 @@ input:focus-visible,
 select:focus-visible,
 button:focus-visible,
 a:focus-visible {
-  outline: 3px solid var(--verde);
+  outline: 3px solid var(--primario);
   outline-offset: 1px;
 }
 input[aria-invalid='true'] {
@@ -135,22 +140,22 @@ button,
   text-align: center;
 }
 .primario {
-  background: var(--verde);
+  background: var(--primario);
   color: var(--blanco);
   width: 100%;
 }
 .primario:hover:not(:disabled) {
-  background: var(--verde-oscuro);
+  background: var(--primario-osc);
 }
 .secundario {
   background: var(--blanco);
-  color: var(--verde);
-  border-color: var(--verde);
+  color: var(--primario);
+  border-color: var(--primario);
 }
 .texto {
   background: none;
   border: 0;
-  color: var(--verde);
+  color: var(--primario);
   padding: 6px 0;
   width: auto;
   text-decoration: underline;
@@ -178,8 +183,8 @@ button:disabled {
   border: 1px solid #f5c6c2;
 }
 .aviso.exito {
-  background: var(--verde-claro);
-  color: var(--verde-oscuro);
+  background: var(--exito-claro);
+  color: var(--exito-osc);
   border: 1px solid #b8ddcd;
 }
 .aviso.info {
@@ -216,7 +221,7 @@ button:disabled {
 
 /* Cabecera del portal */
 .barra {
-  background: var(--verde);
+  background: var(--primario);
   color: var(--blanco);
 }
 .barra .interior {
@@ -253,7 +258,7 @@ button:disabled {
   color: var(--blanco);
   overflow: hidden;
   isolation: isolate;
-  /* Velo verde sobre la foto: más denso a la izquierda (texto) y abajo (pie) para el contraste AA */
+  /* Velo morado sobre la foto: más denso a la izquierda (texto) y abajo (pie) para el contraste AA */
   background:
     linear-gradient(100deg, rgba(58, 21, 56, 0.96) 0%, rgba(95, 41, 91, 0.86) 42%, rgba(132, 57, 124, 0.5) 100%),
     linear-gradient(0deg, rgba(58, 21, 56, 0.85) 0%, rgba(58, 21, 56, 0) 30%),
@@ -598,12 +603,12 @@ button:disabled {
   width: 100%;
 }
 .opcion:hover {
-  border-color: var(--verde);
-  background: var(--verde-claro);
+  border-color: var(--primario);
+  background: var(--primario-claro);
 }
 .opcion[aria-pressed='true'] {
-  border-color: var(--verde);
-  background: var(--verde-claro);
+  border-color: var(--primario);
+  background: var(--primario-claro);
 }
 .opcion .detalle {
   display: block;
@@ -649,12 +654,12 @@ button:disabled {
   counter-reset: paso;
 }
 .pasos li.activo {
-  color: var(--verde-oscuro);
+  color: var(--primario-osc);
   font-weight: 700;
 }
 .pasos li.activo::before,
 .pasos li.hecho::before {
-  background: var(--verde);
+  background: var(--primario);
 }
 
 /* Ficha de la cita */
@@ -718,8 +723,8 @@ button:disabled {
   letter-spacing: 0.04em;
   padding: 3px 8px;
   border-radius: 999px;
-  background: var(--verde-claro);
-  color: var(--verde-oscuro);
+  background: var(--exito-claro);
+  color: var(--exito-osc);
 }
 .insignia.gris {
   background: #eceff1;
@@ -757,8 +762,8 @@ button:disabled {
 .opcion.con-imagen .inicial {
   display: grid;
   place-items: center;
-  background: var(--verde-claro);
-  color: var(--verde-oscuro);
+  background: var(--primario-claro);
+  color: var(--primario-osc);
   font-size: 0.85rem;
   font-weight: 700;
 }
@@ -792,7 +797,7 @@ button:disabled {
 .navegacion a:hover,
 .navegacion a.activo {
   /* EQ-05: fondo más oscuro (no más claro) para mantener el contraste del texto blanco */
-  background: var(--verde-oscuro);
+  background: var(--primario-osc);
   box-shadow: inset 0 -2px 0 var(--blanco);
 }
 .usuario-barra {
@@ -805,7 +810,7 @@ button:disabled {
   height: 34px;
   border-radius: 50%;
   background: var(--blanco);
-  color: var(--verde-oscuro);
+  color: var(--primario-osc);
   display: grid;
   place-items: center;
   font-weight: 700;
@@ -819,7 +824,7 @@ button:disabled {
 .bienvenida {
   color: var(--blanco);
   background:
-    linear-gradient(120deg, rgba(7, 82, 57, 0.97) 0%, rgba(11, 110, 79, 0.9) 60%, rgba(11, 110, 79, 0.78) 100%),
+    linear-gradient(120deg, rgba(95, 41, 91, 0.97) 0%, rgba(132, 57, 124, 0.9) 60%, rgba(132, 57, 124, 0.78) 100%),
     url('/img/hospital-regional.jpg') center 40% / cover no-repeat;
 }
 .bienvenida .interior {
@@ -857,7 +862,7 @@ button:disabled {
 }
 .boton.claro {
   background: var(--blanco);
-  color: var(--verde-oscuro);
+  color: var(--primario-osc);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -870,7 +875,7 @@ button:disabled {
   fill: none;
 }
 .boton.claro:hover {
-  background: var(--verde-claro);
+  background: var(--primario-claro);
 }
 .boton.contorno-claro {
   color: var(--blanco);
@@ -893,7 +898,7 @@ button:disabled {
 .portal .tarjeta {
   border-radius: 14px;
   border-color: #e3e6e8;
-  box-shadow: 0 6px 20px rgba(7, 82, 57, 0.08);
+  box-shadow: 0 6px 20px rgba(95, 41, 91, 0.08);
 }
 .proxima h2 {
   font-size: 0.85rem;
@@ -913,11 +918,11 @@ button:disabled {
   border-radius: 12px;
   overflow: hidden;
   text-align: center;
-  border: 1px solid #cfe5db;
+  border: 1px solid #ead3e5;
 }
 .calendario-dia .mes {
   display: block;
-  background: var(--verde);
+  background: var(--primario);
   color: var(--blanco);
   font-size: 0.78rem;
   font-weight: 700;
@@ -928,7 +933,7 @@ button:disabled {
   display: block;
   font-size: 1.9rem;
   font-weight: 700;
-  color: var(--verde-oscuro);
+  color: var(--primario-osc);
   padding: 4px 0 6px;
 }
 .proxima-especialidad {
@@ -944,8 +949,8 @@ button:disabled {
   margin: 10px 0 0;
   padding: 3px 10px;
   border-radius: 6px;
-  background: var(--verde-claro);
-  color: var(--verde-oscuro);
+  background: var(--primario-claro);
+  color: var(--primario-osc);
   font-weight: 700;
   font-size: 0.85rem;
   letter-spacing: 0.04em;
@@ -988,7 +993,7 @@ button:disabled {
 .cifra .numero {
   font-size: 1.8rem;
   font-weight: 700;
-  color: var(--verde);
+  color: var(--primario);
   min-width: 2ch;
 }
 .cifra .etiqueta {
@@ -1004,7 +1009,7 @@ h2.seccion {
 }
 .portal .modulo:not(.inactivo):hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 28px rgba(7, 82, 57, 0.14);
+  box-shadow: 0 12px 28px rgba(95, 41, 91, 0.14);
 }
 .portal .modulo .boton {
   margin-top: auto;
@@ -1026,8 +1031,8 @@ h2.seccion {
   border-radius: 12px;
   display: grid;
   place-items: center;
-  background: var(--verde-claro);
-  color: var(--verde);
+  background: var(--primario-claro);
+  color: var(--primario);
 }
 .modulo.inactivo .icono-modulo {
   background: #e9ecee;
@@ -1094,7 +1099,7 @@ h2.seccion {
 .cabecera-pagina {
   color: var(--blanco);
   background:
-    linear-gradient(120deg, rgba(7, 82, 57, 0.97) 0%, rgba(11, 110, 79, 0.9) 60%, rgba(11, 110, 79, 0.8) 100%),
+    linear-gradient(120deg, rgba(95, 41, 91, 0.97) 0%, rgba(132, 57, 124, 0.9) 60%, rgba(132, 57, 124, 0.8) 100%),
     url('/img/hospital-regional.jpg') center 40% / cover no-repeat;
 }
 .cabecera-pagina .interior {
@@ -1125,10 +1130,10 @@ h2.seccion {
 .pagina-flotante .tarjeta {
   border-radius: 14px;
   border-color: #e3e6e8;
-  box-shadow: 0 6px 20px rgba(7, 82, 57, 0.08);
+  box-shadow: 0 6px 20px rgba(95, 41, 91, 0.08);
 }
 .pagina-flotante > .aviso {
-  box-shadow: 0 6px 20px rgba(7, 82, 57, 0.08);
+  box-shadow: 0 6px 20px rgba(95, 41, 91, 0.08);
 }
 
 /* Progreso de la reserva */
@@ -1153,7 +1158,7 @@ h2.seccion {
   margin: 0 6px;
 }
 .progreso .pasos li.hecho:not(:last-child)::after {
-  background: var(--verde);
+  background: var(--primario);
 }
 .progreso .pasos li::before {
   width: 28px;
@@ -1172,13 +1177,13 @@ h2.seccion {
 .barra-progreso {
   height: 6px;
   border-radius: 999px;
-  background: var(--verde-claro);
+  background: var(--primario-claro);
   overflow: hidden;
 }
 .barra-progreso span {
   display: block;
   height: 100%;
-  background: var(--verde);
+  background: var(--primario);
   border-radius: 999px;
   transition: width 0.25s ease;
 }
@@ -1221,8 +1226,8 @@ h2.seccion {
   border: 2px solid var(--borde);
 }
 .seleccion dl div.listo::before {
-  border-color: var(--verde);
-  background: var(--verde);
+  border-color: var(--primario);
+  background: var(--primario);
   box-shadow: inset 0 0 0 3px var(--blanco);
 }
 .seleccion dt {
@@ -1284,11 +1289,11 @@ h2.seccion {
 .dia-boton .numero {
   font-size: 1.4rem;
   font-weight: 700;
-  color: var(--verde-oscuro);
+  color: var(--primario-osc);
 }
 .dia-boton[aria-pressed='true'] {
-  background: var(--verde);
-  border-color: var(--verde);
+  background: var(--primario);
+  border-color: var(--primario);
 }
 .dia-boton[aria-pressed='true'] span {
   color: var(--blanco);
@@ -1330,7 +1335,7 @@ h3.turno {
   white-space: nowrap;
 }
 .filtro[aria-pressed='true'] {
-  background: var(--verde);
+  background: var(--primario);
   color: var(--blanco);
 }
 .cita {
@@ -1372,8 +1377,8 @@ h3.turno {
   overflow: hidden;
 }
 .ficha-qr-lado {
-  background: var(--verde-claro);
-  border-right: 2px dashed #b8ddcd;
+  background: var(--primario-claro);
+  border-right: 2px dashed #e3c3dc;
   padding: 28px 20px;
   display: flex;
   flex-direction: column;
@@ -1484,7 +1489,7 @@ h3.turno {
   }
   .ficha-qr-lado {
     border-right: 0;
-    border-bottom: 2px dashed #b8ddcd;
+    border-bottom: 2px dashed #e3c3dc;
   }
   .ficha-datos-lado {
     padding: 20px;
@@ -1499,7 +1504,7 @@ h3.turno {
 /* Ajustes: colores del progreso, mes en mayúsculas y "Tu selección" compacta en pantallas chicas */
 .progreso .pasos li.activo::before,
 .progreso .pasos li.hecho::before {
-  background: var(--verde);
+  background: var(--primario);
 }
 .calendario-dia .mes {
   text-transform: uppercase;
@@ -1556,7 +1561,7 @@ h3.turno {
 }
 .servicio-nombre {
   background: var(--blanco);
-  color: var(--verde-oscuro);
+  color: var(--primario-osc);
   font-weight: 700;
   padding: 8px 16px;
   border-radius: 999px;
@@ -1599,7 +1604,7 @@ h3.turno {
   aspect-ratio: 4 / 3;
   object-fit: cover;
   border-radius: 12px;
-  background: #102a22;
+  background: #2a1028;
 }
 .marco-qr {
   position: absolute;
@@ -1621,8 +1626,8 @@ h3.turno {
   margin-top: 16px;
   padding: 16px;
   border-radius: 12px;
-  border: 2px solid var(--verde);
-  background: #f6fbf9;
+  border: 2px solid var(--exito);
+  background: #fbf6fa;
 }
 .resultado-qr.no-valida {
   border-color: #f5c6c2;
@@ -1676,12 +1681,12 @@ h3.turno {
   background: #f5f7f8;
 }
 .cifra-caja.espera {
-  background: var(--verde-claro);
+  background: var(--primario-claro);
 }
 .cifra-caja .numero {
   font-size: 1.7rem;
   font-weight: 700;
-  color: var(--verde-oscuro);
+  color: var(--primario-osc);
 }
 .cifra-caja .etiqueta {
   font-size: 0.82rem;
@@ -1724,7 +1729,7 @@ h3.turno {
 .hora-agenda {
   font-size: 1.15rem;
   font-weight: 700;
-  color: var(--verde-oscuro);
+  color: var(--primario-osc);
   font-variant-numeric: tabular-nums;
 }
 .datos-agenda {
@@ -1739,8 +1744,8 @@ h3.turno {
   width: auto;
 }
 .fila-agenda.en_espera {
-  background: #f6fbf9;
-  box-shadow: inset 4px 0 0 var(--verde);
+  background: #fbf6fa;
+  box-shadow: inset 4px 0 0 var(--primario);
 }
 .fila-agenda.atendida .hora-agenda,
 .fila-agenda.no_llego .hora-agenda,
@@ -1793,7 +1798,7 @@ h3.turno {
     width: 100%;
   }
 }
-/* Portal del personal: sin tarjeta de resumen, "Servicios" no debe quedar sobre la franja verde */
+/* Portal del personal: sin tarjeta de resumen, "Servicios" no debe quedar sobre la franja morada */
 .contenido.portal.sin-resumen {
   margin-top: 0;
   padding-top: 24px;
@@ -1855,7 +1860,7 @@ h3.turno {
   text-decoration: none;
 }
 .fila-servicio:hover {
-  background: var(--verde-claro);
+  background: var(--primario-claro);
 }
 .nombre-servicio {
   font-weight: 600;
@@ -1869,7 +1874,7 @@ h3.turno {
 .barra-avance span {
   display: block;
   height: 100%;
-  background: var(--verde);
+  background: var(--primario);
   border-radius: 999px;
 }
 .detalle-servicio {
@@ -1878,7 +1883,7 @@ h3.turno {
   white-space: nowrap;
 }
 .detalle-servicio strong {
-  color: var(--verde-oscuro);
+  color: var(--primario-osc);
 }
 .guia-admision {
   list-style: none;
@@ -1957,14 +1962,14 @@ h3.turno {
   text-decoration: none;
 }
 .proximas-llegadas a:hover {
-  background: var(--verde-claro);
+  background: var(--primario-claro);
 }
 .proximas-llegadas li + li {
-  border-top: 1px solid #e8ecea;
+  border-top: 1px solid #efe6ed;
 }
 .hora-proxima {
   font-weight: 700;
-  color: var(--verde-oscuro, #0b6e4f);
+  color: var(--primario-osc);
   min-width: 52px;
 }
 .proximas-llegadas .quien {
@@ -1978,4 +1983,89 @@ h3.turno {
 .sin-proximas {
   margin: 0;
   color: var(--texto-suave);
+}
+
+/* ===== Movimiento: transiciones entre pantallas y entradas suaves ===== */
+/* Cambio de pantalla con la API View Transitions (withViewTransitions en el router) */
+::view-transition-old(root) {
+  animation: salir-vista 0.22s ease-in both;
+}
+::view-transition-new(root) {
+  animation: entrar-vista 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes salir-vista {
+  to { opacity: 0; transform: translateY(-6px); }
+}
+@keyframes entrar-vista {
+  from { opacity: 0; transform: translateY(10px); }
+}
+/* La barra superior no se mueve entre pantallas */
+.barra {
+  view-transition-name: barra-superior;
+}
+::view-transition-group(barra-superior) {
+  animation: none;
+}
+
+/* Entrada escalonada del contenido de cada pantalla */
+.bienvenida .interior > *,
+.contenido > *,
+.modulos > *,
+.opciones > *,
+.cifras-admision > *,
+.citas > *,
+.guia-admision > *,
+.por-servicio li,
+.proximas-llegadas li {
+  animation: aparecer 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.contenido > :nth-child(2), .modulos > :nth-child(2), .opciones > :nth-child(2), .cifras-admision > :nth-child(2), .guia-admision > :nth-child(2), .por-servicio li:nth-child(2), .proximas-llegadas li:nth-child(2), .citas > :nth-child(2), .bienvenida .interior > :nth-child(2) { animation-delay: 0.05s; }
+.contenido > :nth-child(3), .modulos > :nth-child(3), .opciones > :nth-child(3), .cifras-admision > :nth-child(3), .guia-admision > :nth-child(3), .por-servicio li:nth-child(3), .proximas-llegadas li:nth-child(3), .citas > :nth-child(3), .bienvenida .interior > :nth-child(3) { animation-delay: 0.1s; }
+.contenido > :nth-child(4), .modulos > :nth-child(4), .opciones > :nth-child(4), .cifras-admision > :nth-child(4), .guia-admision > :nth-child(4), .por-servicio li:nth-child(4), .citas > :nth-child(4) { animation-delay: 0.15s; }
+.contenido > :nth-child(n + 5), .modulos > :nth-child(n + 5), .opciones > :nth-child(n + 5), .por-servicio li:nth-child(n + 5), .citas > :nth-child(n + 5) { animation-delay: 0.2s; }
+
+/* Respuesta al pasar el mouse y al presionar */
+.boton,
+button {
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+}
+.boton:active:not(:disabled),
+button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.tarjeta {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.modulo:not(.inactivo):hover,
+.tarjeta.cita:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(95, 41, 91, 0.16);
+}
+.opcion {
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.opcion:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(95, 41, 91, 0.12);
+}
+.barra-avance span,
+.barra-progreso span {
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.navegacion a {
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
 }
