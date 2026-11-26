@@ -15,6 +15,11 @@ const SALIDA = join(__dirname, '..', '..', 'pruebas-calidad', 'accesibilidad', '
 const resumen: { pantalla: string; criticas: number; graves: number; moderadas: number; leves: number; reglas: string[] }[] = [];
 
 async function auditar(page: any, pantalla: string) {
+  // Espera a que terminen las animaciones de entrada (las infinitas del fondo no cuentan):
+  // a mitad de un fundido el texto tiene opacidad parcial y axe mediría un contraste falso.
+  await page.waitForFunction(() =>
+    document.getAnimations().every((a) => a.playState !== 'running' || a.effect?.getComputedTiming().iterations === Infinity),
+  );
   const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
   const cuenta = (impacto: string) => r.violations.filter((v) => v.impact === impacto).length;
   resumen.push({

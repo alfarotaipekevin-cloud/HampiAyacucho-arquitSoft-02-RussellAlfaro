@@ -5,14 +5,17 @@
 export const TEXTOS = {
   marca: {
     nombre: 'Hampi Ayacucho',
-    titular: 'Tu cita médica, sin hacer cola',
+    etiqueta: 'Citas en línea · Región Ayacucho',
+    titular: 'Tu cita médica,',
+    titularResalte: 'sin hacer cola',
     lema: 'Reserva tu cita en los establecimientos de salud de la región',
     pasos: [
       { titulo: 'Elige la especialidad', detalle: 'Medicina general, pediatría, odontología y más.' },
       { titulo: 'Escoge el día y la hora', detalle: 'Solo ves los cupos que siguen libres.' },
       { titulo: 'Recibe tu ficha con QR', detalle: 'Muéstrala en el establecimiento el día de tu cita.' },
     ],
-    red: 'Hospital Regional de Ayacucho "Miguel A. Mariscal Llerena" y establecimientos de la red regional',
+    hospital: 'Hospital Regional de Ayacucho "Miguel A. Mariscal Llerena"',
+    red: 'Junto a los establecimientos de la red de salud de la región',
     pie: 'Dirección Regional de Salud de Ayacucho · Proyecto académico',
   },
   ingresar: {
