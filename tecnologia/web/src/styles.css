@@ -3,6 +3,12 @@
   --verde: #0b6e4f;
   --verde-oscuro: #075239;
   --verde-claro: #e6f2ed;
+  /* Colores del logo del Hospital Regional de Ayacucho (pantallas de acceso) */
+  --morado: #5f295b;
+  --morado-medio: #84397c;
+  --morado-osc: #3a1538;
+  --rosa: #f7a8d7;
+  --lima: #a3d65c;
   --rojo: #b3261e;
   --ambar: #8a5a00;
   --texto: #1c1c1c;
@@ -249,10 +255,10 @@ button:disabled {
   isolation: isolate;
   /* Velo verde sobre la foto: más denso a la izquierda (texto) y abajo (pie) para el contraste AA */
   background:
-    linear-gradient(100deg, rgba(5, 61, 42, 0.95) 0%, rgba(7, 82, 57, 0.86) 42%, rgba(11, 110, 79, 0.55) 100%),
-    linear-gradient(0deg, rgba(5, 61, 42, 0.85) 0%, rgba(5, 61, 42, 0) 30%),
+    linear-gradient(100deg, rgba(58, 21, 56, 0.96) 0%, rgba(95, 41, 91, 0.86) 42%, rgba(132, 57, 124, 0.5) 100%),
+    linear-gradient(0deg, rgba(58, 21, 56, 0.85) 0%, rgba(58, 21, 56, 0) 30%),
     url('/img/hospital-regional.jpg') center / cover no-repeat;
-  background-color: var(--verde-oscuro);
+  background-color: var(--morado);
 }
 /* Luces suaves de fondo */
 .acceso::before,
@@ -269,7 +275,7 @@ button:disabled {
   height: 420px;
   top: -140px;
   right: 18%;
-  background: rgba(64, 196, 140, 0.35);
+  background: rgba(247, 168, 215, 0.32);
   animation: flotar 14s ease-in-out infinite alternate;
 }
 .acceso::after {
@@ -277,7 +283,7 @@ button:disabled {
   height: 360px;
   bottom: -160px;
   left: 10%;
-  background: rgba(16, 140, 100, 0.4);
+  background: rgba(163, 214, 92, 0.22);
   animation: flotar 18s ease-in-out infinite alternate-reverse;
 }
 @keyframes flotar {
@@ -341,8 +347,8 @@ button:disabled {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #6ee7b7;
-  box-shadow: 0 0 0 4px rgba(110, 231, 183, 0.25);
+  background: var(--lima);
+  box-shadow: 0 0 0 4px rgba(163, 214, 92, 0.28);
 }
 .acceso .presentacion h1 {
   font-size: clamp(2rem, 3.6vw, 3.1rem);
@@ -352,7 +358,7 @@ button:disabled {
 }
 .acceso .presentacion h1 em {
   font-style: normal;
-  color: #a7f3d0;
+  color: var(--rosa);
 }
 .acceso .presentacion .lema {
   font-size: 1.15rem;
@@ -391,7 +397,7 @@ button:disabled {
   margin-bottom: 8px;
   border-radius: 10px;
   background: var(--blanco);
-  color: var(--verde-oscuro);
+  color: var(--morado);
   display: grid;
   place-items: center;
   font-weight: 800;
@@ -406,17 +412,18 @@ button:disabled {
 .acceso .red {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   font-size: 0.85rem;
-  max-width: 32rem;
-  padding: 10px 16px 10px 10px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.18);
+  max-width: 34rem;
   width: fit-content;
 }
 .acceso .red img {
-  border-radius: 50%;
+  height: 76px;
+  width: auto;
+  padding: 6px 10px;
+  border-radius: 14px;
   background: var(--blanco);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   flex-shrink: 0;
 }
 .acceso .red p {
@@ -445,7 +452,7 @@ button:disabled {
   position: absolute;
   inset: 0 0 auto;
   height: 6px;
-  background: linear-gradient(90deg, var(--verde-oscuro), #19a974, var(--verde));
+  background: linear-gradient(90deg, var(--morado), #b0559f, var(--rosa), var(--lima));
 }
 .acceso .panel .tarjeta h2 {
   font-size: 1.65rem;
@@ -463,20 +470,21 @@ button:disabled {
 }
 .acceso .panel input:not([type="checkbox"]):focus {
   background: var(--blanco);
-  border-color: var(--verde);
-  box-shadow: 0 0 0 4px rgba(11, 110, 79, 0.15);
+  border-color: var(--morado-medio);
+  box-shadow: 0 0 0 4px rgba(132, 57, 124, 0.18);
 }
 .acceso .panel .primario {
   padding: 14px 18px;
   margin-top: 4px;
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--verde) 0%, var(--verde-oscuro) 100%);
-  box-shadow: 0 10px 20px rgba(11, 110, 79, 0.28);
+  background: linear-gradient(135deg, var(--morado-medio) 0%, var(--morado) 100%);
+  border-color: var(--morado);
+  box-shadow: 0 10px 20px rgba(95, 41, 91, 0.3);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .acceso .panel .primario:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 14px 26px rgba(11, 110, 79, 0.34);
+  box-shadow: 0 14px 26px rgba(95, 41, 91, 0.36);
 }
 .acceso .panel hr {
   border: 0;
@@ -487,6 +495,23 @@ button:disabled {
   margin-top: 10px;
   width: 100%;
   border-radius: 12px;
+  color: var(--morado);
+  border-color: var(--morado-medio);
+}
+.acceso .panel .boton.secundario:hover {
+  background: #f8eef6;
+}
+.acceso .panel a,
+.acceso .panel .texto {
+  color: var(--morado-medio);
+}
+.acceso .panel a:focus-visible,
+.acceso .panel button:focus-visible,
+.acceso .panel input:focus-visible {
+  outline-color: var(--morado-medio);
+}
+.acceso .panel input[type='checkbox'] {
+  accent-color: var(--morado-medio);
 }
 .acceso .pie {
   color: rgba(255, 255, 255, 0.9);
@@ -531,7 +556,7 @@ button:disabled {
 @media (max-width: 860px) {
   .acceso {
     background:
-      linear-gradient(180deg, rgba(5, 61, 42, 0.9) 0%, rgba(7, 82, 57, 0.85) 45%, rgba(5, 61, 42, 0.97) 100%),
+      linear-gradient(180deg, rgba(58, 21, 56, 0.92) 0%, rgba(95, 41, 91, 0.86) 45%, rgba(58, 21, 56, 0.97) 100%),
       url('/img/hospital-regional.jpg') center top / cover no-repeat;
   }
   .acceso .cuerpo {

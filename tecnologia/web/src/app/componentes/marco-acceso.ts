@@ -32,7 +32,7 @@ import { TEXTOS } from '../nucleo/textos';
           </div>
 
           <div class="red">
-            <img src="img/logo-hospital-regional.jpg" alt="" width="48" height="48" />
+            <img src="img/logo-hospital-horizontal.jpg" [alt]="textos.marca.hospital" width="222" height="76" />
             <p>{{ textos.marca.red }}</p>
           </div>
         </section>
