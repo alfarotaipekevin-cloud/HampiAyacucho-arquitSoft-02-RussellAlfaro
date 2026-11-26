@@ -160,6 +160,39 @@ test.describe('Paciente', () => {
     await expect(page.getByText('Cancelada')).toBeVisible();
   });
 
+  test('reprograma su cita a otro día y hora sin cambiar el código QR (spec 008)', async ({ page, request }) => {
+    await asegurarCuenta(request, PACIENTES.jose);
+    await liberarCitas(request, PACIENTES.jose);
+    await ingresar(page, PACIENTES.jose);
+    await page.goto('/citas/reservar');
+    await page.getByRole('button', { name: 'Medicina general' }).click();
+    await page.getByRole('button', { name: /Carmen Alto/ }).click();
+    await expect(page.getByRole('heading', { name: 'Elige el día' })).toBeVisible();
+    await page.locator('.opciones button').nth(1).click();
+    await page.locator('.opciones.horas button').first().click();
+    await page.getByRole('button', { name: 'Confirmar la cita' }).click();
+    await expect(page.getByRole('heading', { name: 'Tu cita está reservada' })).toBeVisible();
+    const codigo = (await page.locator('.ficha-codigo').innerText()).trim();
+    const antes = await page.locator('.cabecera-pagina p').innerText();
+
+    await page.getByRole('button', { name: /Cambiar fecha u hora/ }).click();
+    await expect(page.getByRole('heading', { name: 'Reprogramar la cita' })).toBeVisible();
+    await expect(page.getByText('Te quedan 2 cambios')).toBeVisible();
+    const confirmar = page.getByRole('button', { name: 'Confirmar nueva fecha' });
+    await expect(confirmar).toBeDisabled();
+    await page.locator('.reprogramar .dia-boton').nth(2).click();
+    await page.locator('.reprogramar .hora-boton').first().click();
+    await confirmar.click();
+
+    await expect(page.getByText('Reprogramamos tu cita')).toBeVisible();
+    await expect(page.locator('.ficha-codigo')).toHaveText(codigo); // RR-07
+    await expect(page.locator('.cabecera-pagina p')).not.toHaveText(antes);
+
+    page.on('dialog', (d) => d.accept());
+    await page.getByRole('button', { name: 'Cancelar la cita' }).click();
+    await expect(page.getByText('Cancelamos tu cita')).toBeVisible();
+  });
+
   test('sin sesión, una ruta del portal lleva al ingreso', async ({ page }) => {
     await page.goto('/citas');
     await expect(page).toHaveURL(/\/ingresar/);

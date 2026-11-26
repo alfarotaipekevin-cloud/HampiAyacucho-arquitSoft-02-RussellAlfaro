@@ -14,6 +14,7 @@
     @if (servicio(); as s) {
       <div class="servicio-actual">
         <span class="servicio-nombre">{{ s.nombre }}</span>
+        <a class="boton contorno-claro" [href]="'sala-espera?servicio=' + s.id" target="_blank" rel="noopener" [title]="textos.salaEspera.abrirAyuda">📺 {{ textos.salaEspera.abrir }}</a>
         <button type="button" class="boton contorno-claro" (click)="cambiarServicio()">{{ t.cambiarServicio }}</button>
       </div>
     }

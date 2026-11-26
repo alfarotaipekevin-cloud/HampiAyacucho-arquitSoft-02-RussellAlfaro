@@ -6,6 +6,7 @@ import { ConsultarDisponibilidadUseCase } from './aplicacion/consultar-disponibi
 import { ConsultarMisCitasUseCase } from './aplicacion/consultar-mis-citas.use-case';
 import { ConstructorFicha, ExportadorFicha } from './aplicacion/ficha-cita';
 import { ReservarCitaUseCase } from './aplicacion/reservar-cita.use-case';
+import { ReprogramarCitaUseCase } from './aplicacion/reprogramar-cita.use-case';
 import { RepositorioCatalogo, RepositorioCitas, RepositorioCupos, RepositorioPersonal } from './dominio/repositorios';
 import { AdmisionUseCase } from './aplicacion/admision.use-case';
 import { DirectorioPacientes, GeneradorQR, Notificador, ValidadorIdentidad } from './dominio/servicios-externos';
@@ -55,6 +56,7 @@ export function crearModuloCitas(d: DependenciasCitas) {
       reservarCita: new ReservarCitaUseCase(d.citas, d.cupos, d.catalogo, d.identidad, d.notificador, d.pacientes, ficha, d.reloj),
       misCitas: new ConsultarMisCitasUseCase(d.citas, d.catalogo, d.pacientes, ficha, d.reloj),
       cancelarCita: new CancelarCitaUseCase(d.citas, d.reloj),
+      reprogramarCita: new ReprogramarCitaUseCase(d.citas, d.cupos, d.catalogo, d.notificador, d.pacientes, ficha, d.reloj),
       exportador: d.exportador,
       admision: new AdmisionUseCase(d.citas, d.catalogo, d.personal, d.pacientes, d.reloj),
     },

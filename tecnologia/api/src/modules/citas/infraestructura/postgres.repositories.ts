@@ -79,17 +79,18 @@ export class CuposPostgresRepository implements RepositorioCupos {
 
 interface FilaCita extends FilaCupo {
   cita_id: string; codigo: string; paciente_id: string; dni_paciente: string;
-  cita_estado: EstadoCita; notificacion: EstadoNotificacion; creada_en: Date; llegada_en: Date | null;
+  cita_estado: EstadoCita; notificacion: EstadoNotificacion; creada_en: Date; llegada_en: Date | null; reprogramaciones: number;
 }
 
 const SELECT_CITA = `SELECT ci.id AS cita_id, ci.codigo, ci.paciente_id, ci.dni_paciente, ci.estado AS cita_estado,
-  ci.notificacion, ci.creada_en, ci.llegada_en, ${COLUMNAS_CUPO}
+  ci.notificacion, ci.creada_en, ci.llegada_en, ci.reprogramaciones, ${COLUMNAS_CUPO}
   FROM citas ci JOIN cupos c ON c.id = ci.cupo_id`;
 
 const aCita = (f: FilaCita) =>
   Cita.restaurar({
     id: f.cita_id, codigo: f.codigo, pacienteId: f.paciente_id, dniPaciente: f.dni_paciente,
     estado: f.cita_estado, notificacion: f.notificacion, creadaEn: f.creada_en, llegadaEn: f.llegada_en,
+    reprogramaciones: f.reprogramaciones,
     cupo: new Cupo({
       id: f.id, establecimientoId: f.establecimientoId, especialidadId: f.especialidadId, consultorio: f.consultorio,
       medico: f.medico, fechaHora: f.fechaHora, duracionMin: f.duracionMin, estado: f.estado,
@@ -158,6 +159,43 @@ export class CitasPostgresRepository implements RepositorioCitas {
       await cliente.query('COMMIT');
     } catch (e) {
       await cliente.query('ROLLBACK');
+      throw e;
+    } finally {
+      cliente.release();
+    }
+  }
+
+  /**
+   * RR-08: como en la reserva, el UPDATE solo ocupa el nuevo cupo si sigue DISPONIBLE.
+   * La cita solo se mueve si sigue RESERVADA, sin llegada y con el mismo conteo (otra pestaña no la cambió antes).
+   * El índice citas_un_dia_por_especialidad protege RN-02.
+   */
+  async reprogramar(cita: Cita, cupoAnterior: Cupo) {
+    const cupoAnteriorId = cupoAnterior.id;
+    const cliente = await this.bd.connect();
+    try {
+      await cliente.query('BEGIN');
+      const ocupado = await cliente.query(
+        `UPDATE cupos SET estado = 'OCUPADO' WHERE id = $1 AND estado = 'DISPONIBLE'`, [cita.cupo.id]);
+      if (ocupado.rowCount !== 1) {
+        throw new ReglaNegocioError('CUPO_NO_DISPONIBLE', 'RN-01: el cupo ya no está disponible');
+      }
+      const movida = await cliente.query(
+        `UPDATE citas SET cupo_id = $2, dia_lima = (($3::timestamptz) AT TIME ZONE 'America/Lima')::date,
+           reprogramaciones = $4, notificacion = $5
+         WHERE id = $1 AND cupo_id = $6 AND estado = 'RESERVADA' AND llegada_en IS NULL AND reprogramaciones = $4 - 1`,
+        [cita.id, cita.cupo.id, cita.cupo.fechaHora, cita.reprogramaciones, cita.notificacion, cupoAnteriorId],
+      );
+      if (movida.rowCount !== 1) {
+        throw new ReglaNegocioError('CITA_CAMBIADA', 'La cita cambió mientras la reprogramabas; vuelve a intentarlo');
+      }
+      await cliente.query(`UPDATE cupos SET estado = 'DISPONIBLE' WHERE id = $1`, [cupoAnteriorId]);
+      await cliente.query('COMMIT');
+    } catch (e: any) {
+      await cliente.query('ROLLBACK');
+      if (e?.code === '23505' && e?.constraint === 'citas_un_dia_por_especialidad') {
+        throw new ReglaNegocioError('CITA_DUPLICADA', 'RN-02: ya tienes una cita en esta especialidad ese día');
+      }
       throw e;
     } finally {
       cliente.release();

@@ -20,6 +20,10 @@
   @if (ficha(); as f) {
     @if (cancelada()) {
       <p class="aviso exito" role="status">{{ textos.ficha.cancelada }}</p>
+    } @else if (reprogramada() === 'ENVIADA') {
+      <p class="aviso exito" role="status">✅ {{ textos.reprogramar.listo }}</p>
+    } @else if (reprogramada() === 'PENDIENTE') {
+      <p class="aviso info" role="status">{{ textos.reprogramar.listoSinSms }}</p>
     } @else if (recienReservada()) {
       @if (f.notificacion === 'ENVIADA') {
         <p class="aviso exito" role="status">✅ {{ textos.ficha.aviso }}</p>
@@ -65,14 +69,24 @@
           <button type="button" class="primario" [disabled]="descargando()" (click)="descargar()">
             {{ descargando() ? textos.ficha.descargando : textos.ficha.descargar }}
           </button>
+          @if (sePuedeReprogramar && f.reprogramacionesRestantes > 0 && !reprogramando()) {
+            <button type="button" class="secundario" (click)="abrirReprogramar()">📅 {{ textos.ficha.reprogramar }}</button>
+          }
           @if (sePuedeCancelar) {
             <button type="button" class="peligro" [disabled]="cancelando()" (click)="cancelar()">
               {{ cancelando() ? textos.ficha.cancelando : textos.ficha.cancelar }}
             </button>
           }
         </div>
+        @if (sePuedeReprogramar && f.reprogramacionesRestantes === 0) {
+          <p class="nota-reglas">{{ textos.reprogramar.sinCambios }}</p>
+        }
       </div>
     </section>
+
+    @if (reprogramando()) {
+      <app-reprogramar [ficha]="f" (reprogramada)="alReprogramar($event)" (cerrar)="reprogramando.set(false)" />
+    }
 
     <p class="acciones-ficha pie-ficha">
       <a routerLink="/citas" class="boton secundario">{{ textos.ficha.misCitas }}</a>

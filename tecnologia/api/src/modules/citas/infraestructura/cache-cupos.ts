@@ -120,10 +120,20 @@ export class CitasConInvalidacionRepository implements RepositorioCitas {
     await this.invalidar(cita); // cancelar libera el cupo
   }
 
-  private async invalidar(cita: Cita) {
-    const { especialidadId, establecimientoId, fechaHora } = cita.cupo;
+  /** Spec 008: cambian dos cupos (el nuevo se ocupa y el anterior se libera), quizá de días distintos. */
+  async reprogramar(cita: Cita, cupoAnterior: Cupo) {
     try {
-      await this.cache.borrar(claveCuposDelDia(especialidadId, establecimientoId, diaEnLima(fechaHora)));
+      await this.interno.reprogramar(cita, cupoAnterior);
+    } finally {
+      await this.invalidar(cita, diaEnLima(cupoAnterior.fechaHora));
+    }
+  }
+
+  private async invalidar(cita: Cita, otroDia?: string) {
+    const { especialidadId, establecimientoId, fechaHora } = cita.cupo;
+    const dias = new Set([diaEnLima(fechaHora), ...(otroDia ? [otroDia] : [])]);
+    try {
+      await Promise.all([...dias].map((dia) => this.cache.borrar(claveCuposDelDia(especialidadId, establecimientoId, dia))));
     } catch {
       // Si Redis está caído, el TTL corto limita el tiempo que un dato puede quedar viejo.
     }

@@ -66,6 +66,10 @@ export interface Ficha {
   fechaHora: string;
   qr: string;
   notificacion: 'ENVIADA' | 'PENDIENTE';
+  /** Spec 008 */
+  especialidadId: string;
+  establecimientoId: string;
+  reprogramacionesRestantes: number;
 }
 
 export interface CitaResumen {

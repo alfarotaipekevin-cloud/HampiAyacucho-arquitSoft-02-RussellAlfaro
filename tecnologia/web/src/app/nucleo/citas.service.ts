@@ -41,6 +41,11 @@ export class CitasService {
     return firstValueFrom(this.http.patch<{ estado: string }>(`${API}/citas/${citaId}/cancelar`, {}));
   }
 
+  /** Spec 008: cambia la cita a otro cupo del mismo servicio; el código QR no cambia. */
+  reprogramar(citaId: string, cupoId: string) {
+    return firstValueFrom(this.http.patch<Ficha>(`${API}/citas/${citaId}/reprogramar`, { cupoId }));
+  }
+
   /** El PDF se pide con el token, así que se descarga como blob y no con un enlace directo. */
   fichaPdf(citaId: string) {
     return firstValueFrom(this.http.get(`${API}/citas/${citaId}/ficha.pdf`, { responseType: 'blob' }));

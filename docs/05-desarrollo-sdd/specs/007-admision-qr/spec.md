@@ -70,3 +70,20 @@ Todas exigen JWT con rol `PERSONAL_SALUD` (los demás roles reciben 403, comprob
 - **Migración** `003_admision.sql`: columna `citas.llegada_en`, tabla `personal_establecimiento`, índice `citas_agenda (dia_lima, especialidad_id)`.
 - **Datos demo**: 70000099 → Hospital Regional; 70000096 → Hospital de Huanta (contraseña `Hampi2026`).
 - **Web**: ruta `/admision` con `personalGuard`, componente `LectorQr` (getUserMedia + jsQR cargado solo al abrir la cámara), agenda que se refresca cada 30 s, diseño responsivo.
+
+## 7. Extensión · Pantalla de sala de espera (televisor)
+
+- **Ruta web:** `/sala-espera?servicio=ped`, con `personalGuard`. La recepción la abre desde Admisión con el botón "📺 Pantalla de sala de espera", en una pestaña aparte que se lleva al televisor.
+- **Contenido:**
+  - "Pasa a consulta": el primer paciente en espera, en el orden de su cita, con su consultorio y médico;
+  - los siguientes que ya llegaron;
+  - las próximas citas por llegar.
+- **Actualización:** se renueva sola cada 15 s con la misma agenda de la API; no hay ruta nueva.
+- **Diseño:** colores claros para que se lea a distancia en un televisor.
+- **Privacidad:**
+  - solo se ve el nombre y las iniciales de los apellidos (`nombrePublico`: "Rosa A. P.");
+  - nunca se muestra el DNI;
+  - del código solo se muestran los 4 últimos caracteres.
+- **Limitación:** usa la sesión del personal, que dura 30 minutos (JWT). En una exposición conviene volver a abrirla antes de mostrarla.
+- **Accesibilidad:** auditada con axe (EQ-05), con 0 errores.
+

@@ -32,6 +32,8 @@ describe('Integración con PostgreSQL y simuladores', () => {
     bd = new Pool({ connectionString: env.DATABASE_URL });
     await migrar(bd);
     await bd.query('TRUNCATE citas, codigos_recuperacion, usuarios');
+    // Sin citas, ningún cupo queda ocupado: así las ejecuciones anteriores no se acumulan.
+    await bd.query(`UPDATE cupos SET estado = 'DISPONIBLE' WHERE estado = 'OCUPADO'`);
     infra = await crearInfraestructuraPostgres({
       jwtSecreto: 'secreto-de-integracion-con-mas-de-32-caracteres',
       pide: { url: env.PIDE_URL ?? 'http://localhost:4001', usuario: env.PIDE_USUARIO ?? '40000000', password: env.PIDE_PASSWORD ?? 'clave-entidad' },
@@ -211,5 +213,30 @@ describe('Integración con PostgreSQL y simuladores', () => {
     // Deja la base como estaba: libera los cupos y borra las citas de demostración
     await bd.query(`UPDATE cupos SET estado = 'DISPONIBLE' WHERE id IN (SELECT cupo_id FROM citas WHERE dia_lima = $1 AND dni_paciente LIKE '700001%')`, [dia]);
     await bd.query(`DELETE FROM citas WHERE dia_lima = $1 AND dni_paciente LIKE '700001%'`, [dia]);
+  });
+
+  test('spec 008: reprogramar en PostgreSQL cambia el cupo y el día, conserva el código y respeta RN-01 en carrera', async () => {
+    const maria = await entrar(url, DATOS_MARIA);
+    const jose = await entrar(url, DATOS_JOSE);
+    const cupos = new CuposPostgresRepository(bd);
+    const original = await cupoLibre(maria, 'ped', 'hah', 3);
+    const cita = (await llamar(url, 'POST', '/api/v1/citas', { cupoId: original }, maria)).cuerpo;
+    const deJose = (await llamar(url, 'POST', '/api/v1/citas', { cupoId: await cupoLibre(jose, 'ped', 'hah', 3) }, jose)).cuerpo;
+    const destino = await cupoLibre(maria, 'ped', 'hah', 4);
+
+    // María y José piden el mismo cupo nuevo a la vez: solo uno lo obtiene y el otro sigue con su cita
+    const [rm, rj] = await Promise.all([
+      llamar(url, 'PATCH', `/api/v1/citas/${cita.citaId}/reprogramar`, { cupoId: destino }, maria),
+      llamar(url, 'PATCH', `/api/v1/citas/${deJose.citaId}/reprogramar`, { cupoId: destino }, jose),
+    ]);
+    expect([rm.estado, rj.estado].sort()).toEqual([200, 409]);
+    const { rows: [conteo] } = await bd.query(`SELECT count(*)::int AS total FROM citas WHERE cupo_id = $1`, [destino]);
+    expect(conteo.total).toBe(1);
+
+    const ganadora = rm.estado === 200 ? { r: rm, cita, antes: original } : { r: rj, cita: deJose, antes: deJose.fechaHora };
+    expect(ganadora.r.cuerpo.codigo).toBe(ganadora.cita.codigo);
+    const { rows: [fila] } = await bd.query(`SELECT cupo_id, reprogramaciones, to_char(dia_lima, 'YYYY-MM-DD') AS dia FROM citas WHERE id = $1`, [ganadora.cita.citaId]);
+    expect(fila).toEqual({ cupo_id: destino, reprogramaciones: 1, dia: ganadora.r.cuerpo.fechaHora.slice(0, 10) });
+    if (rm.estado === 200) expect((await cupos.buscarPorId(original))!.estaDisponible()).toBe(true);
   });
 });

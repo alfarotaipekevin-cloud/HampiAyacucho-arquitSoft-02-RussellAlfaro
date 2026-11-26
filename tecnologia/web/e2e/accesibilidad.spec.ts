@@ -51,7 +51,7 @@ test.describe('EQ-05 · Accesibilidad WCAG 2.1 AA', () => {
     });
   }
 
-  test('Pantallas con sesión (portal, mis citas, reservar): sin errores críticos', async ({ page }) => {
+  test('Pantallas con sesión (portal, mis citas, reservar, reprogramar): sin errores críticos', async ({ page, request }) => {
     await page.goto('/ingresar');
     await page.getByLabel('Número de documento').fill(JOSE.dni);
     await page.getByLabel('Contraseña', { exact: true }).fill(JOSE.contrasena);
@@ -64,6 +64,24 @@ test.describe('EQ-05 · Accesibilidad WCAG 2.1 AA', () => {
       const r = await auditar(page, pantalla);
       expect(r.violations.filter((v) => v.impact === 'critical'), pantalla).toEqual([]);
     }
+
+    // Ficha con el panel de reprogramar abierto (spec 008): se reserva una cita y se cancela al final.
+    const sesion = await (await request.post(`${API}/api/v1/identidad/sesion`, { data: { numeroDocumento: JOSE.dni, contrasena: JOSE.contrasena } })).json();
+    const cabeceras = { Authorization: `Bearer ${sesion.token}` };
+    for (const c of await (await request.get(`${API}/api/v1/citas/mias?estado=RESERVADA`, { headers: cabeceras })).json()) {
+      await request.patch(`${API}/api/v1/citas/${c.citaId}/cancelar`, { headers: cabeceras });
+    }
+    const consulta = 'especialidadId=mg&establecimientoId=csjb';
+    const fechas = await (await request.get(`${API}/api/v1/citas/cupos/fechas?${consulta}`, { headers: cabeceras })).json();
+    const cupos = await (await request.get(`${API}/api/v1/citas/cupos?${consulta}&fecha=${fechas[1]}`, { headers: cabeceras })).json();
+    const cita = await (await request.post(`${API}/api/v1/citas`, { headers: cabeceras, data: { cupoId: cupos[0].id } })).json();
+    await page.goto(`/citas/${cita.citaId}`);
+    await page.getByRole('button', { name: /Cambiar fecha u hora/ }).click();
+    await page.locator('.reprogramar .dia-boton').nth(1).click();
+    await page.locator('.reprogramar .hora-boton').first().click();
+    const r = await auditar(page, 'Ficha · reprogramar cita');
+    await request.patch(`${API}/api/v1/citas/${cita.citaId}/cancelar`, { headers: cabeceras });
+    expect(r.violations.filter((v) => v.impact === 'critical')).toEqual([]);
   });
 
   test('Admisión (personal de salud, spec 007): sin errores críticos', async ({ page }) => {
@@ -80,6 +98,12 @@ test.describe('EQ-05 · Accesibilidad WCAG 2.1 AA', () => {
     await expect(page.getByRole('heading', { name: 'Citas de hoy' })).toBeVisible();
     const r = await auditar(page, 'Admisión');
     expect(r.violations.filter((v) => v.impact === 'critical')).toEqual([]);
+
+    // Pantalla de la sala de espera para el televisor
+    await page.goto('/sala-espera?servicio=ped');
+    await expect(page.getByRole('heading', { name: 'En espera' })).toBeVisible();
+    const tv = await auditar(page, 'Sala de espera (TV)');
+    expect(tv.violations.filter((v) => v.impact === 'critical')).toEqual([]);
   });
 
   test('El formulario de ingreso se completa solo con el teclado', async ({ page }) => {

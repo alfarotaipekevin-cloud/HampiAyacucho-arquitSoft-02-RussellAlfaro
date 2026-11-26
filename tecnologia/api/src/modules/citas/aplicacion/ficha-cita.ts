@@ -15,6 +15,10 @@ export interface FichaCita {
   fechaHora: string;
   qr: string;
   notificacion: string;
+  /** Spec 008: para buscar horarios del mismo servicio al reprogramar. */
+  especialidadId: string;
+  establecimientoId: string;
+  reprogramacionesRestantes: number;
 }
 
 /** Puerto para descargar la ficha como documento (RF03). */
@@ -46,6 +50,9 @@ export class ConstructorFicha {
       fechaHora: formatoLima(cita.cupo.fechaHora),
       qr: await this.qr.generar(cita.codigo), // RN-12: solo el código, sin datos personales
       notificacion: cita.notificacion,
+      especialidadId: cita.cupo.especialidadId,
+      establecimientoId: cita.cupo.establecimientoId,
+      reprogramacionesRestantes: cita.reprogramacionesRestantes,
     };
   }
 }

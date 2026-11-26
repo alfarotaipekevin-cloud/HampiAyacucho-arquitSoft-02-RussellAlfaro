@@ -1,7 +1,7 @@
 /**
  * Contrato OpenAPI 3.0 de la API Hampi (Sprint 2, actividad 4).
  * Se sirve en /api/docs (Swagger UI) y /api/docs/openapi.json.
- * Fuente: §5 de las specs 002, 003 y 004, y §4 de la spec 005.
+ * Fuente: §5 de las specs 002, 003 y 004, §4 de la spec 005, y las specs 007 y 008.
  * La prueba pruebas/api/openapi.test.ts falla si una ruta de Express no está documentada aquí.
  */
 
@@ -105,6 +105,9 @@ export const documentoOpenApi = {
           fechaHora: { type: 'string', format: 'date-time' },
           qr: { type: 'string', description: 'Imagen PNG en data URL' },
           notificacion: { type: 'string', enum: ['ENVIADA', 'PENDIENTE'] },
+          especialidadId: { type: 'string', example: 'ped' },
+          establecimientoId: { type: 'string', example: 'hra' },
+          reprogramacionesRestantes: { type: 'integer', minimum: 0, maximum: 2, description: 'Spec 008 · RR-03' },
         },
       },
       ResumenCita: {
@@ -309,6 +312,23 @@ export const documentoOpenApi = {
           200: { description: 'Cita cancelada; el cupo vuelve a estar libre', content: json(ref('Ficha')) },
           401: r401, 403: r403, 404: error('No existe o no es del paciente', 'CITA_NO_EXISTE'),
           409: error('No se puede cancelar', 'CITA_NO_RESERVADA', 'CITA_ATENDIDA', 'FUERA_DE_PLAZO'),
+        },
+      },
+    },
+    // Spec 008 · Reprogramar cita
+    '/citas/{citaId}/reprogramar': {
+      patch: {
+        tags: ['Citas'],
+        summary: 'Reprogramar una cita a otro horario del mismo servicio (spec 008)',
+        description: 'Hasta 2 horas antes y como máximo 2 veces por cita. El código QR no cambia y se envía un SMS con la nueva fecha. Si otro paciente gana el nuevo cupo, la cita sigue como estaba (RR-08).',
+        security: conToken, parameters: [citaIdParam],
+        requestBody: { required: true, content: json({ type: 'object', required: ['cupoId'], properties: { cupoId: { type: 'string' } } }) },
+        responses: {
+          200: { description: 'Cita reprogramada; el cupo anterior vuelve a estar libre', content: json(ref('Ficha')) },
+          400: error('Falta cupoId', 'DATOS_INVALIDOS'), 401: r401, 403: r403,
+          404: error('Cita o cupo inexistente', 'CITA_NO_EXISTE', 'CUPO_NO_EXISTE'),
+          409: error('Regla de negocio incumplida', 'CUPO_NO_DISPONIBLE', 'FUERA_DE_PLAZO', 'LIMITE_REPROGRAMACIONES', 'OTRO_SERVICIO',
+            'MISMO_CUPO', 'CUPO_VENCIDO', 'FUERA_DE_APERTURA', 'CITA_DUPLICADA', 'CITA_NO_RESERVADA', 'CITA_ATENDIDA', 'LLEGADA_YA_REGISTRADA', 'CITA_CAMBIADA'),
         },
       },
     },

@@ -13,6 +13,8 @@ export interface AvisoCita {
   establecimiento: string;
   fechaHora: Date;
   consultorio: string;
+  /** Spec 008: el SMS avisa la nueva fecha de una cita reprogramada. */
+  reprogramada?: boolean;
 }
 
 /** Puerto hacia el servicio de mensajería. Devuelve false si no se pudo enviar (RN-13). */
