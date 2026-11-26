@@ -4,6 +4,7 @@ import { Server } from 'node:http';
 import { Pool } from 'pg';
 import { crearApp, Infraestructura } from '../../app';
 import { migrar } from '../../db/migrador';
+import { sembrarCitasDelDia } from '../../db/citas-demo';
 import { crearInfraestructuraPostgres } from '../../infraestructura';
 import { Cita } from '../../modules/citas/dominio/cita';
 import { CitasPostgresRepository, CuposPostgresRepository, PersonalPostgresRepository } from '../../modules/citas';
@@ -186,5 +187,29 @@ describe('Integración con PostgreSQL y simuladores', () => {
     leida.registrarLlegada(cupo.fechaHora, 'hra');
     await citas.actualizar(leida);
     expect((await citas.buscarPorId(cita.id))!.llegadaEn?.getTime()).toBe(cupo.fechaHora.getTime());
+  });
+
+  test('citas de demostración (CITAS_DEMO): llenan la agenda del día sin duplicarse y avanzan con la hora', async () => {
+    // Un día con cupos sembrados que no sea domingo, a las 10:30 en Lima
+    let dia = diaEnLima(new Date(Date.now() + 2 * 86400000));
+    if (new Date(`${dia}T12:00:00-05:00`).getUTCDay() === 0) dia = diaEnLima(new Date(Date.now() + 3 * 86400000));
+    const manana = new Date(`${dia}T10:30:00-05:00`);
+    const citas = new CitasPostgresRepository(bd);
+
+    expect(await sembrarCitasDelDia(bd, manana, 'hash-de-prueba')).toBeGreaterThan(20);
+    expect(await sembrarCitasDelDia(bd, manana, 'hash-de-prueba')).toBe(0);
+    const ped = await citas.delDia('hra', 'ped', dia);
+    expect(ped.length).toBeGreaterThanOrEqual(6);
+    expect(ped.some((c) => c.estado === 'ATENDIDA')).toBe(true);
+    expect(ped.some((c) => c.estado === 'RESERVADA' && c.llegadaEn === null)).toBe(true);
+
+    // El mismo día a las 13:30, las citas de la mañana avanzan: hay más atendidas que a las 10:30
+    await sembrarCitasDelDia(bd, new Date(`${dia}T13:30:00-05:00`), 'hash-de-prueba');
+    const tarde = await citas.delDia('hra', 'ped', dia);
+    expect(tarde.filter((c) => c.estado === 'ATENDIDA').length).toBeGreaterThan(ped.filter((c) => c.estado === 'ATENDIDA').length);
+
+    // Deja la base como estaba: libera los cupos y borra las citas de demostración
+    await bd.query(`UPDATE cupos SET estado = 'DISPONIBLE' WHERE id IN (SELECT cupo_id FROM citas WHERE dia_lima = $1 AND dni_paciente LIKE '700001%')`, [dia]);
+    await bd.query(`DELETE FROM citas WHERE dia_lima = $1 AND dni_paciente LIKE '700001%'`, [dia]);
   });
 });

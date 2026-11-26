@@ -66,5 +66,7 @@ services:
           envVarKey: SMS_API_KEY
       - key: SERVICIOS_TIEMPO_MAXIMO_MS
         value: "60000" # en el plan gratuito los simuladores tardan en "despertar"
+      - key: CITAS_DEMO
+        value: "true" # citas ficticias de cada día para la demo de admisión (db/citas-demo.ts)
       - key: CORS_ORIGEN
         sync: false # URL de Vercel del frontend (Sprint 3), separadas por comas

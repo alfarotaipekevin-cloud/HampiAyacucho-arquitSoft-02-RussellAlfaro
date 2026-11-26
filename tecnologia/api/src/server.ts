@@ -36,6 +36,7 @@ async function iniciar() {
       tiempoMaximoMs: Number(env.SERVICIOS_TIEMPO_MAXIMO_MS ?? 5000),
     },
     cache: await elegirCache(env),
+    citasDemo: env.CITAS_DEMO === 'true',
   };
 
   let infra;

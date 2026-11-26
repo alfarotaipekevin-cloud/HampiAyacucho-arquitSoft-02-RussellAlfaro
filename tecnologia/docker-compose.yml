@@ -56,6 +56,7 @@ services:
       PIDE_USUARIO: ${PIDE_USUARIO:-40000000}
       PIDE_PASSWORD: ${PIDE_PASSWORD:-clave-entidad}
       SMS_URL: http://mock-sms:4002
+      CITAS_DEMO: ${CITAS_DEMO:-true}
       SMS_API_KEY: ${SMS_API_KEY:-clave-sms-local}
       CORS_ORIGEN: ${CORS_ORIGEN:-http://localhost:4200}
       REDIS_URL: redis://redis:6379
@@ -83,6 +84,7 @@ services:
       PIDE_USUARIO: ${PIDE_USUARIO:-40000000}
       PIDE_PASSWORD: ${PIDE_PASSWORD:-clave-entidad}
       SMS_URL: http://mock-sms:4002
+      CITAS_DEMO: ${CITAS_DEMO:-true}
       SMS_API_KEY: ${SMS_API_KEY:-clave-sms-local}
       CORS_ORIGEN: ${CORS_ORIGEN:-http://localhost:4200}
       REDIS_URL: redis://redis:6379
