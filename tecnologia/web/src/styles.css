@@ -238,53 +238,126 @@ button:disabled {
   font-size: 0.9rem;
 }
 
-/* Acceso (ingresar, crear cuenta, recuperar) */
+/* Acceso (ingresar, crear cuenta, recuperar): foto del hospital a pantalla completa y tarjeta flotante */
 .acceso {
+  position: relative;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--fondo);
+  color: var(--blanco);
+  overflow: hidden;
+  isolation: isolate;
+  /* Velo verde sobre la foto: más denso a la izquierda (texto) y abajo (pie) para el contraste AA */
+  background:
+    linear-gradient(100deg, rgba(5, 61, 42, 0.95) 0%, rgba(7, 82, 57, 0.86) 42%, rgba(11, 110, 79, 0.55) 100%),
+    linear-gradient(0deg, rgba(5, 61, 42, 0.85) 0%, rgba(5, 61, 42, 0) 30%),
+    url('/img/hospital-regional.jpg') center / cover no-repeat;
+  background-color: var(--verde-oscuro);
+}
+/* Luces suaves de fondo */
+.acceso::before,
+.acceso::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+}
+.acceso::before {
+  width: 420px;
+  height: 420px;
+  top: -140px;
+  right: 18%;
+  background: rgba(64, 196, 140, 0.35);
+  animation: flotar 14s ease-in-out infinite alternate;
+}
+.acceso::after {
+  width: 360px;
+  height: 360px;
+  bottom: -160px;
+  left: 10%;
+  background: rgba(16, 140, 100, 0.4);
+  animation: flotar 18s ease-in-out infinite alternate-reverse;
+}
+@keyframes flotar {
+  from { transform: translate(0, 0); }
+  to { transform: translate(40px, 30px); }
+}
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
 }
 .acceso .cuerpo {
   flex: 1;
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 48px;
+  padding: 32px 48px 16px;
 }
 .acceso .presentacion {
-  position: relative;
-  color: var(--blanco);
-  padding: 36px 48px;
   display: flex;
   flex-direction: column;
+  gap: 40px;
+  align-self: stretch;
   justify-content: space-between;
-  gap: 32px;
-  /* Foto del Hospital Regional con un velo verde para que el texto se lea (contraste AA) */
-  background:
-    linear-gradient(160deg, rgba(7, 82, 57, 0.92) 0%, rgba(11, 110, 79, 0.78) 55%, rgba(7, 82, 57, 0.72) 100%),
-    url('/img/hospital-regional.jpg') center / cover no-repeat;
+  animation: aparecer 0.6s ease-out both;
 }
 .marca-acceso {
   display: flex;
   align-items: center;
   gap: 10px;
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   letter-spacing: 0.01em;
 }
 .marca-acceso .isotipo {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.25));
 }
 .acceso .mensaje {
-  max-width: 30rem;
+  max-width: 38rem;
+}
+.acceso .etiqueta-acceso {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  margin-bottom: 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.acceso .etiqueta-acceso::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6ee7b7;
+  box-shadow: 0 0 0 4px rgba(110, 231, 183, 0.25);
 }
 .acceso .presentacion h1 {
-  font-size: 2.4rem;
-  margin-bottom: 12px;
+  font-size: clamp(2rem, 3.6vw, 3.1rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin-bottom: 14px;
+}
+.acceso .presentacion h1 em {
+  font-style: normal;
+  color: #a7f3d0;
 }
 .acceso .presentacion .lema {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   margin: 0 0 28px;
+  opacity: 0.95;
 }
 .como-funciona {
   list-style: none;
@@ -292,44 +365,54 @@ button:disabled {
   padding: 0;
   margin: 0;
   display: grid;
-  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
 }
 .como-funciona li {
   counter-increment: paso;
-  display: grid;
-  grid-template-columns: 40px 1fr;
-  column-gap: 14px;
-  align-items: center;
-  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 12px;
+  border-radius: 16px;
+  backdrop-filter: blur(6px);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.como-funciona li:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.16);
 }
 .como-funciona li::before {
   content: counter(paso);
-  grid-row: span 2;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 8px;
+  border-radius: 10px;
   background: var(--blanco);
   color: var(--verde-oscuro);
   display: grid;
   place-items: center;
-  font-weight: 700;
-  font-size: 1.05rem;
+  font-weight: 800;
 }
 .como-funciona strong {
-  font-size: 1rem;
+  font-size: 0.98rem;
 }
 .como-funciona span {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  opacity: 0.95;
 }
 .acceso .red {
   display: flex;
   align-items: center;
   gap: 12px;
   font-size: 0.85rem;
-  max-width: 30rem;
+  max-width: 32rem;
+  padding: 10px 16px 10px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.18);
+  width: fit-content;
 }
 .acceso .red img {
   border-radius: 50%;
@@ -341,30 +424,59 @@ button:disabled {
 }
 .acceso .panel {
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 40px 24px;
+  animation: aparecer 0.6s 0.15s ease-out both;
 }
 .acceso .panel .tarjeta {
+  position: relative;
   width: 100%;
-  max-width: 27rem;
-  padding: 32px;
+  max-width: 28rem;
+  padding: 36px 34px;
+  color: var(--texto);
+  background: rgba(255, 255, 255, 0.97);
   border: 0;
-  border-top: 5px solid var(--verde);
-  border-radius: 16px;
-  box-shadow: 0 12px 32px rgba(7, 82, 57, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.28), 0 8px 20px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(12px);
+}
+.acceso .panel .tarjeta::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 6px;
+  background: linear-gradient(90deg, var(--verde-oscuro), #19a974, var(--verde));
 }
 .acceso .panel .tarjeta h2 {
-  font-size: 1.5rem;
+  font-size: 1.65rem;
   margin-bottom: 4px;
 }
 .acceso .panel .tarjeta > .suave:first-of-type {
   margin-top: 0;
   margin-bottom: 22px;
 }
+.acceso .panel input:not([type="checkbox"]) {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f7f9f8;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.acceso .panel input:not([type="checkbox"]):focus {
+  background: var(--blanco);
+  border-color: var(--verde);
+  box-shadow: 0 0 0 4px rgba(11, 110, 79, 0.15);
+}
 .acceso .panel .primario {
-  padding: 13px 18px;
+  padding: 14px 18px;
   margin-top: 4px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--verde) 0%, var(--verde-oscuro) 100%);
+  box-shadow: 0 10px 20px rgba(11, 110, 79, 0.28);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.acceso .panel .primario:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px rgba(11, 110, 79, 0.34);
 }
 .acceso .panel hr {
   border: 0;
@@ -374,6 +486,10 @@ button:disabled {
 .acceso .panel .boton.secundario {
   margin-top: 10px;
   width: 100%;
+  border-radius: 12px;
+}
+.acceso .pie {
+  color: rgba(255, 255, 255, 0.9);
 }
 .pie {
   padding: 14px 16px;
@@ -381,30 +497,63 @@ button:disabled {
   font-size: 0.82rem;
   color: var(--texto-suave);
 }
+@media (prefers-reduced-motion: reduce) {
+  .acceso::before,
+  .acceso::after,
+  .acceso .presentacion,
+  .acceso .panel {
+    animation: none;
+  }
+}
 
-@media (max-width: 860px) {
-  .acceso .cuerpo {
+@media (max-width: 1100px) {
+  .como-funciona {
     grid-template-columns: 1fr;
   }
-  .acceso .presentacion {
-    padding: 24px 20px 28px;
-    gap: 18px;
+  .como-funciona li {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    column-gap: 12px;
   }
-  .acceso .presentacion h1 {
-    font-size: 1.6rem;
+  .como-funciona li::before {
+    margin: 0;
+  }
+  .como-funciona li strong {
+    flex: 1;
+  }
+  .como-funciona li span {
+    flex-basis: 100%;
+    padding-left: 46px;
+    margin-top: -4px;
+  }
+}
+@media (max-width: 860px) {
+  .acceso {
+    background:
+      linear-gradient(180deg, rgba(5, 61, 42, 0.9) 0%, rgba(7, 82, 57, 0.85) 45%, rgba(5, 61, 42, 0.97) 100%),
+      url('/img/hospital-regional.jpg') center top / cover no-repeat;
+  }
+  .acceso .cuerpo {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 20px 16px 8px;
+    align-items: start;
+  }
+  .acceso .presentacion {
+    gap: 22px;
   }
   .acceso .presentacion .lema {
     margin-bottom: 0;
+    font-size: 1rem;
   }
   .como-funciona,
   .acceso .red {
     display: none;
   }
-  .acceso .panel {
-    padding: 24px 16px;
-  }
   .acceso .panel .tarjeta {
-    padding: 24px 20px;
+    padding: 28px 20px;
+    border-radius: 20px;
   }
 }
 

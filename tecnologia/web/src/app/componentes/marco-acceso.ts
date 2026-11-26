@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { TEXTOS } from '../nucleo/textos';
 
-/** Pantalla partida de las páginas de acceso: presentación con foto a la izquierda y tarjeta a la derecha. */
+/** Pantalla de acceso: foto del hospital a pantalla completa, presentación a la izquierda y tarjeta flotante a la derecha. */
 @Component({
   selector: 'app-marco-acceso',
   template: `
@@ -17,7 +17,8 @@ import { TEXTOS } from '../nucleo/textos';
           </div>
 
           <div class="mensaje">
-            <h1>{{ textos.marca.titular }}</h1>
+            <span class="etiqueta-acceso">{{ textos.marca.etiqueta }}</span>
+            <h1>{{ textos.marca.titular }} <em>{{ textos.marca.titularResalte }}</em></h1>
             <p class="lema">{{ textos.marca.lema }}</p>
 
             <ol class="como-funciona">

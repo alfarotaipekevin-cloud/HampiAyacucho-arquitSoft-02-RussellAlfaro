@@ -5,7 +5,9 @@
 export const TEXTOS = {
   marca: {
     nombre: 'Hampi Ayacucho',
-    titular: 'Tu cita médica, sin hacer cola',
+    etiqueta: 'Citas en línea · Región Ayacucho',
+    titular: 'Tu cita médica,',
+    titularResalte: 'sin hacer cola',
     lema: 'Reserva tu cita en los establecimientos de salud de la región',
     pasos: [
       { titulo: 'Elige la especialidad', detalle: 'Medicina general, pediatría, odontología y más.' },
