@@ -98,6 +98,10 @@ test.describe('EQ-05 · Accesibilidad WCAG 2.1 AA', () => {
     await expect(page.getByRole('heading', { name: 'Citas de hoy' })).toBeVisible();
     const r = await auditar(page, 'Admisión');
     expect(r.violations.filter((v) => v.impact === 'critical')).toEqual([]);
+    await page.locator('.chip-dia').nth(1).click();
+    await expect(page.getByText('Solo consulta.')).toBeVisible();
+    const otroDia = await auditar(page, 'Admisión · otro día (solo consulta)');
+    expect(otroDia.violations.filter((v) => v.impact === 'critical')).toEqual([]);
 
     // Pantalla de la sala de espera para el televisor
     await page.goto('/sala-espera?servicio=ped');

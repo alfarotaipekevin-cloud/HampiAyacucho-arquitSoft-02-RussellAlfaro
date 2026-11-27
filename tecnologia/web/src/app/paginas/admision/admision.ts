@@ -5,8 +5,8 @@ import { BarraPortal } from '../../componentes/barra-portal';
 import { LectorQr } from '../../componentes/lector-qr';
 import { AdmisionService } from '../../nucleo/admision.service';
 import { mensajeDeError } from '../../nucleo/api';
-import { diaLargo, hora } from '../../nucleo/formato';
-import { AgendaDia, CitaAgenda, EstadoAdmision, Especialidad, LecturaQr, ServiciosAdmision } from '../../nucleo/modelos';
+import { diaLargo, hora, partesDelDia } from '../../nucleo/formato';
+import { AgendaDia, CitaAgenda, DiaAgenda, EstadoAdmision, Especialidad, LecturaQr, ServiciosAdmision } from '../../nucleo/modelos';
 import { TEXTOS } from '../../nucleo/textos';
 
 type Filtro = 'TODAS' | EstadoAdmision;
@@ -31,11 +31,17 @@ export class Admision implements OnDestroy {
   protected readonly t = TEXTOS.admision;
   protected readonly textos = TEXTOS;
   protected readonly hora = hora;
+  protected readonly diaLargo = diaLargo;
+  protected readonly partesDelDia = partesDelDia;
   protected readonly hoy = diaLargo(new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima' }).format(new Date()));
 
   protected readonly servicios = signal<ServiciosAdmision | null>(null);
   protected readonly servicio = signal<Especialidad | null>(null);
   protected readonly agenda = signal<AgendaDia | null>(null);
+  /** RA-06: hoy y los próximos días, y el día elegido ('' = hoy). */
+  protected readonly dias = signal<DiaAgenda[]>([]);
+  protected readonly dia = signal('');
+  protected readonly soloConsulta = computed(() => this.agenda()?.soloConsulta === true);
   protected readonly lectura = signal<LecturaQr | null>(null);
   protected readonly filtro = signal<Filtro>('TODAS');
   protected readonly camara = signal(false);
@@ -88,6 +94,8 @@ export class Admision implements OnDestroy {
     guardarServicio(e.id);
     this.lectura.set(null);
     this.filtro.set('TODAS');
+    this.dia.set('');
+    this.dias.set([]);
     await this.cargarAgenda();
     setTimeout(() => this.campoCodigo()?.nativeElement.focus());
   }
@@ -95,6 +103,8 @@ export class Admision implements OnDestroy {
   protected cambiarServicio(): void {
     this.servicio.set(null);
     this.agenda.set(null);
+    this.dias.set([]);
+    this.dia.set('');
     this.lectura.set(null);
     guardarServicio(null);
   }
@@ -104,12 +114,26 @@ export class Admision implements OnDestroy {
     if (!s) return;
     if (mostrarCarga) this.cargando.set(true);
     try {
-      this.agenda.set(await this.api.agenda(s.id));
+      const [agenda, dias] = await Promise.all([this.api.agenda(s.id, this.dia() || undefined), this.api.dias(s.id)]);
+      if (this.servicio()?.id !== s.id) return; // cambió de servicio mientras cargaba
+      this.agenda.set(agenda);
+      this.dias.set(dias);
     } catch (e) {
       this.error.set(mensajeDeError(e));
     } finally {
       this.cargando.set(false);
     }
+  }
+
+  /** RA-06: ver otro día. Hoy vuelve al modo normal, donde se registran las llegadas. */
+  protected async elegirDia(d: DiaAgenda): Promise<void> {
+    this.dia.set(d.hoy ? '' : d.fecha);
+    this.filtro.set('TODAS');
+    await this.cargarAgenda();
+  }
+
+  protected esElegido(d: DiaAgenda): boolean {
+    return this.dia() ? this.dia() === d.fecha : d.hoy;
   }
 
   /** El lector USB "escribe" el código y pulsa Enter, así que llega por aquí igual que si se tipea. */

@@ -1415,6 +1415,97 @@ h3.turno {
   margin-top: 16px;
 }
 
+/* Spec 007 · RA-06: tira de días de la admisión */
+.selector-dias {
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+.selector-dias h2 {
+  font-size: 1rem;
+  margin: 0 0 4px;
+}
+.selector-dias .suave {
+  font-size: 0.88rem;
+  margin: 0 0 12px;
+}
+.tira-dias {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scroll-snap-type: x mandatory;
+}
+.chip-dia {
+  flex: 0 0 auto;
+  min-width: 84px;
+  scroll-snap-align: start;
+  background: var(--blanco);
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.15;
+  font-weight: 600;
+  color: var(--texto);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.chip-dia:hover {
+  border-color: var(--primario);
+  transform: translateY(-2px);
+}
+.chip-dia .rotulo {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--primario);
+  min-height: 14px;
+}
+.chip-dia .semana {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+.chip-dia .numero {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--primario-osc);
+}
+.chip-dia .cuenta {
+  margin-top: 4px;
+  font-size: 0.72rem;
+  background: var(--primario-claro);
+  color: var(--primario-osc);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+.chip-dia[aria-pressed='true'] {
+  background: var(--primario);
+  border-color: var(--primario);
+}
+.chip-dia[aria-pressed='true'] span {
+  color: var(--blanco);
+}
+.chip-dia[aria-pressed='true'] .cuenta {
+  background: var(--primario-osc);
+}
+.aviso-consulta {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: #fff6e0;
+  color: #6b4200;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  margin: 0 0 14px;
+}
+.insignia.programada {
+  background: var(--primario-claro);
+  color: var(--primario-osc);
+}
+
 /* Spec 008 · Reprogramar la cita */
 .reprogramar {
   margin-top: 20px;

@@ -51,7 +51,10 @@ export function crearRutasCitas(casos: CasosDeUso, s: Seguridad): Router {
     res.json(await casos.admision.servicios(usuarioDe(req).dni));
   });
   rutas.get('/admision/agenda', s.soloPersonal, async (req, res) => {
-    res.json(await casos.admision.agenda(usuarioDe(req).dni, req.query.especialidadId));
+    res.json(await casos.admision.agenda(usuarioDe(req).dni, req.query.especialidadId, req.query.fecha));
+  });
+  rutas.get('/admision/dias', s.soloPersonal, async (req, res) => {
+    res.json(await casos.admision.dias(usuarioDe(req).dni, req.query.especialidadId));
   });
   rutas.get('/admision/codigo/:codigo', s.soloPersonal, async (req, res) => {
     res.json(await casos.admision.buscarPorCodigo(usuarioDe(req).dni, String(req.params.codigo)));

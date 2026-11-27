@@ -1,5 +1,5 @@
 import { DatosInvalidosError, ErrorAplicacion, NoEncontradoError } from '../../../shared/dominio/errores';
-import { diaEnLima, formatoLima } from '../../../shared/dominio/fecha-lima';
+import { diaEnLima, esDiaValido, formatoLima, inicioDelDiaEnLima, sumarDias } from '../../../shared/dominio/fecha-lima';
 import { Reloj } from '../../../shared/dominio/reloj';
 import { Cita } from '../dominio/cita';
 import { EstadoCita } from '../dominio/estado-cita';
@@ -23,6 +23,12 @@ export interface CitaDeAgenda {
 }
 
 const CODIGO = /^HAMPI-[0-9A-F]{8}$/;
+
+/** RA-06: la recepción puede consultar las citas de hoy y de los próximos 7 días. */
+export const DIAS_AGENDA = 7;
+/** Día que sigue a `dia` ('AAAA-MM-DD'), en Lima. Se calcula al mediodía para no depender de la hora. */
+const diaSiguiente = (dia: string) => diaEnLima(sumarDias(new Date(inicioDelDiaEnLima(dia).getTime() + 12 * 3600_000), 1));
+const esDomingo = (dia: string) => new Date(`${dia}T12:00:00-05:00`).getUTCDay() === 0;
 
 /**
  * Spec 007 · Admisión con QR: el personal de salud elige el servicio de su piso, ve las citas de hoy,
@@ -56,19 +62,49 @@ export class AdmisionUseCase {
     return { establecimiento: { id: establecimientoId, nombre: establecimiento?.nombre ?? establecimientoId }, especialidades };
   }
 
-  /** RA-02: agenda de hoy del servicio elegido, por hora, con un resumen para la recepción. */
-  async agenda(dniPersonal: string, especialidadId: unknown) {
+  /** RA-01: el servicio debe ser uno de los que atiende el establecimiento del personal. */
+  private async servicioDelPersonal(dniPersonal: string, especialidadId: unknown) {
     if (typeof especialidadId !== 'string' || !especialidadId) throw new DatosInvalidosError('Elige un servicio', 'ESPECIALIDAD_REQUERIDA');
     const establecimientoId = await this.establecimientoDe(dniPersonal);
     const atiende = (await this.catalogo.especialidadesDelEstablecimiento(establecimientoId)).some((e) => e.id === especialidadId);
     if (!atiende) throw new NoEncontradoError('SERVICIO_NO_EXISTE', 'Tu establecimiento no atiende ese servicio');
+    return { establecimientoId, especialidadId };
+  }
 
+  /** RA-06: hoy y los próximos días de atención (sin domingos), con cuántas citas reservadas o atendidas tiene cada uno. */
+  async dias(dniPersonal: string, especialidadId: unknown) {
+    const s = await this.servicioDelPersonal(dniPersonal, especialidadId);
+    const hoy = diaEnLima(this.reloj.ahora());
+    const dias: string[] = [];
+    for (let d = hoy, i = 0; i <= DIAS_AGENDA; d = diaSiguiente(d), i++) if (d === hoy || !esDomingo(d)) dias.push(d);
+    return Promise.all(dias.map(async (fecha) => {
+      const citas = await this.citas.delDia(s.establecimientoId, s.especialidadId, fecha);
+      return { fecha, hoy: fecha === hoy, citas: citas.filter((c) => c.estado !== EstadoCita.CANCELADA).length };
+    }));
+  }
+
+  /**
+   * RA-02: agenda de hoy del servicio elegido, por hora, con un resumen para la recepción.
+   * RA-06: con `fecha` se consulta otro día de los próximos 7, solo para ver (la llegada se registra el mismo día).
+   */
+  async agenda(dniPersonal: string, especialidadId: unknown, fecha?: unknown) {
+    const { establecimientoId } = await this.servicioDelPersonal(dniPersonal, especialidadId);
     const ahora = this.reloj.ahora();
-    const citas = await this.citas.delDia(establecimientoId, especialidadId, diaEnLima(ahora));
+    const hoy = diaEnLima(ahora);
+    let dia = hoy;
+    if (fecha !== undefined && fecha !== '') {
+      if (!esDiaValido(fecha)) throw new DatosInvalidosError('La fecha debe tener el formato AAAA-MM-DD');
+      const limite = diaEnLima(sumarDias(ahora, DIAS_AGENDA));
+      if (fecha < hoy || fecha > limite) throw new DatosInvalidosError(`Solo puedes ver hoy y los próximos ${DIAS_AGENDA} días`, 'FECHA_FUERA_DE_RANGO');
+      dia = fecha;
+    }
+
+    const citas = await this.citas.delDia(establecimientoId, especialidadId as string, dia);
     const lista = await Promise.all(citas.map((c) => this.aAgenda(c, ahora)));
     const contar = (estado: EstadoAdmision) => lista.filter((c) => c.estadoAdmision === estado).length;
     return {
-      fecha: diaEnLima(ahora),
+      fecha: dia,
+      soloConsulta: dia !== hoy,
       resumen: { porLlegar: contar('POR_LLEGAR'), enEspera: contar('EN_ESPERA'), atendidas: contar('ATENDIDA'), noLlegaron: contar('NO_LLEGO') },
       citas: lista,
     };

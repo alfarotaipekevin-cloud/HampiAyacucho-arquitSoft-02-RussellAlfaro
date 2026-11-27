@@ -50,6 +50,7 @@ Las historias HU01–HU08 vienen de `docs/01-analisis-de-sistema/02-historias-de
 | 16 | HU14 | Admisión con QR por servicio (recepción) | [007](../05-desarrollo-sdd/specs/007-admision-qr/spec.md) | RF03 | S | 5 | 4 |
 | 17 | HU14-b | Pantalla de sala de espera para el televisor | [007](../05-desarrollo-sdd/specs/007-admision-qr/spec.md) | — | C | 3 | 4 |
 | 18 | HU15 | Reprogramar cita conservando el QR | [008](../05-desarrollo-sdd/specs/008-reprogramar-cita/spec.md) | RF02 | S | 5 | 4 |
+| 19 | HU14-c | Admisión: consultar los próximos 7 días (RA-06) | [007](../05-desarrollo-sdd/specs/007-admision-qr/spec.md) | — | C | 2 | 4 |
 | — | HU03–HU08 | HCE, referencias, dashboard, reportes, auditoría | — | RF04–RF09 | W | — | Futuro |
 
 **Total comprometido (M + S):** 45 puntos en 3 sprints de desarrollo, más 21 puntos del Sprint 4 (Sprint 2 del curso: implementación y validación de la arquitectura).
@@ -67,6 +68,6 @@ Las historias HU01–HU08 vienen de `docs/01-analisis-de-sistema/02-historias-de
 | HU11 | — | 002 | CA-002-10, CA-002-11 |
 | HU12 | — | 003 | CA-003-1 … CA-003-5 |
 | HU13 | RF03 | 005 | CA-005-9, CA-005-10 |
-| HU14 | RF03 | 007 | CA-007-1 … CA-007-9 |
+| HU14 | RF03 | 007 | CA-007-1 … CA-007-10 |
 | HU15 | RF02 | 008 | CA-008-1 … CA-008-10 |
 | HT01, HT02 | RF02, RF03 | 001 | CA-001-1 … CA-001-8 |

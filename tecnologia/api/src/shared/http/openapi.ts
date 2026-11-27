@@ -342,9 +342,22 @@ export const documentoOpenApi = {
     '/citas/admision/agenda': {
       get: {
         tags: ['Admisión'], summary: 'Citas de hoy de un servicio, con resumen (RA-02)', security: conToken,
+        parameters: [
+          query('especialidadId', 'Servicio elegido por la recepción', true, 'ped'),
+          query('fecha', 'Otro día AAAA-MM-DD de los próximos 7, solo para consultar (RA-06). Por defecto, hoy', false),
+        ],
+        responses: {
+          200: { description: 'Agenda del día', content: json({ type: 'object', properties: { fecha: { type: 'string' }, soloConsulta: { type: 'boolean' }, resumen: { type: 'object' }, citas: { type: 'array', items: ref('CitaDeAgenda') } } }) },
+          400: error('Falta el servicio o la fecha no es válida', 'ESPECIALIDAD_REQUERIDA', 'DATOS_INVALIDOS', 'FECHA_FUERA_DE_RANGO'), 401: r401, 403: r403, 404: error('El establecimiento no atiende ese servicio', 'SERVICIO_NO_EXISTE'),
+        },
+      },
+    },
+    '/citas/admision/dias': {
+      get: {
+        tags: ['Admisión'], summary: 'Hoy y los próximos 7 días de atención, con cuántas citas tiene cada uno (RA-06)', security: conToken,
         parameters: [query('especialidadId', 'Servicio elegido por la recepción', true, 'ped')],
         responses: {
-          200: { description: 'Agenda del día', content: json({ type: 'object', properties: { fecha: { type: 'string' }, resumen: { type: 'object' }, citas: { type: 'array', items: ref('CitaDeAgenda') } } }) },
+          200: { description: 'Días', content: json({ type: 'array', items: { type: 'object', properties: { fecha: { type: 'string', format: 'date' }, hoy: { type: 'boolean' }, citas: { type: 'integer' } } } }) },
           400: error('Falta el servicio', 'ESPECIALIDAD_REQUERIDA'), 401: r401, 403: r403, 404: error('El establecimiento no atiende ese servicio', 'SERVICIO_NO_EXISTE'),
         },
       },

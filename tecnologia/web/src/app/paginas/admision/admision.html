@@ -102,26 +102,49 @@
       </section>
 
       <section class="agenda" [attr.aria-label]="t.agendaHoy">
-        @if (agenda(); as a) {
-          <div class="tarjeta cifras-admision">
-            <div class="cifra-caja"><span class="numero">{{ a.resumen.porLlegar }}</span><span class="etiqueta">{{ t.resumen.porLlegar }}</span></div>
-            <div class="cifra-caja espera"><span class="numero">{{ a.resumen.enEspera }}</span><span class="etiqueta">{{ t.resumen.enEspera }}</span></div>
-            <div class="cifra-caja"><span class="numero">{{ a.resumen.atendidas }}</span><span class="etiqueta">{{ t.resumen.atendidas }}</span></div>
-            <div class="cifra-caja"><span class="numero">{{ a.resumen.noLlegaron }}</span><span class="etiqueta">{{ t.resumen.noLlegaron }}</span></div>
+        @if (dias().length) {
+          <div class="tarjeta selector-dias">
+            <h2>{{ t.queDia }}</h2>
+            <p class="suave">{{ t.queDiaAyuda }}</p>
+            <div class="tira-dias" role="group" [attr.aria-label]="t.queDia">
+              @for (d of dias(); track d.fecha; let i = $index) {
+                <button type="button" class="chip-dia" [attr.aria-pressed]="esElegido(d)" [attr.aria-label]="diaLargo(d.fecha) + ', ' + t.citasCorto(d.citas)" (click)="elegirDia(d)">
+                  <span class="rotulo">{{ d.hoy ? t.hoyCorto : i === 1 ? t.mananaCorto : '' }}</span>
+                  <span class="semana">{{ partesDelDia(d.fecha).semana }}</span>
+                  <span class="numero">{{ partesDelDia(d.fecha).dia }}</span>
+                  <span class="cuenta">{{ t.citasCorto(d.citas) }}</span>
+                </button>
+              }
+            </div>
           </div>
+        }
+        @if (agenda(); as a) {
+          @if (!a.soloConsulta) {
+            <div class="tarjeta cifras-admision">
+              <div class="cifra-caja"><span class="numero">{{ a.resumen.porLlegar }}</span><span class="etiqueta">{{ t.resumen.porLlegar }}</span></div>
+              <div class="cifra-caja espera"><span class="numero">{{ a.resumen.enEspera }}</span><span class="etiqueta">{{ t.resumen.enEspera }}</span></div>
+              <div class="cifra-caja"><span class="numero">{{ a.resumen.atendidas }}</span><span class="etiqueta">{{ t.resumen.atendidas }}</span></div>
+              <div class="cifra-caja"><span class="numero">{{ a.resumen.noLlegaron }}</span><span class="etiqueta">{{ t.resumen.noLlegaron }}</span></div>
+            </div>
+          }
 
           <div class="tarjeta lista-agenda">
             <div class="lista-cabecera">
-              <h2>{{ t.agendaHoy }}</h2>
-              <div class="filtros" role="group">
-                @for (f of filtros; track f.clave) {
-                  <button type="button" class="filtro" [attr.aria-pressed]="filtro() === f.clave" (click)="filtro.set(f.clave)">{{ f.nombre }}</button>
-                }
-              </div>
+              <h2>{{ a.soloConsulta ? t.citasDel + ' ' + diaLargo(a.fecha) : t.agendaHoy }}</h2>
+              @if (!a.soloConsulta) {
+                <div class="filtros" role="group">
+                  @for (f of filtros; track f.clave) {
+                    <button type="button" class="filtro" [attr.aria-pressed]="filtro() === f.clave" (click)="filtro.set(f.clave)">{{ f.nombre }}</button>
+                  }
+                </div>
+              }
             </div>
+            @if (a.soloConsulta) {
+              <p class="aviso-consulta"><span aria-hidden="true">👁️</span><span><b>{{ t.soloConsulta }}</b> {{ t.soloConsultaTexto }}</span></p>
+            }
 
             @if (a.citas.length === 0) {
-              <p class="vacio-grande"><span class="emoji" aria-hidden="true">🗓️</span><br />{{ t.sinCitas }}</p>
+              <p class="vacio-grande"><span class="emoji" aria-hidden="true">🗓️</span><br />{{ a.soloConsulta ? t.sinCitasDia : t.sinCitas }}</p>
             } @else if (visibles().length === 0) {
               <p class="suave">{{ t.sinFiltro }}</p>
             }
@@ -136,12 +159,14 @@
                       <span class="suave">{{ t.llegoA }} {{ hora(c.llegadaEn) }}</span>
                     }
                   </div>
-                  <span class="insignia estado-admision">{{ t.estados[c.estadoAdmision] }}</span>
+                  <span class="insignia estado-admision" [class.programada]="a.soloConsulta && c.estadoAdmision === 'POR_LLEGAR'">{{ a.soloConsulta && c.estadoAdmision === 'POR_LLEGAR' ? t.programada : t.estados[c.estadoAdmision] }}</span>
                   <div class="accion-agenda">
-                    @if (c.estadoAdmision === 'POR_LLEGAR') {
-                      <button type="button" class="secundario" [disabled]="ocupado() === c.citaId" (click)="registrarLlegada(c.citaId)">{{ t.registrarLlegada }}</button>
-                    } @else if (c.estadoAdmision === 'EN_ESPERA') {
-                      <button type="button" class="primario" [disabled]="ocupado() === c.citaId" (click)="atender(c.citaId)">{{ t.marcarAtendida }}</button>
+                    @if (!a.soloConsulta) {
+                      @if (c.estadoAdmision === 'POR_LLEGAR') {
+                        <button type="button" class="secundario" [disabled]="ocupado() === c.citaId" (click)="registrarLlegada(c.citaId)">{{ t.registrarLlegada }}</button>
+                      } @else if (c.estadoAdmision === 'EN_ESPERA') {
+                        <button type="button" class="primario" [disabled]="ocupado() === c.citaId" (click)="atender(c.citaId)">{{ t.marcarAtendida }}</button>
+                      }
                     }
                   </div>
                 </li>
