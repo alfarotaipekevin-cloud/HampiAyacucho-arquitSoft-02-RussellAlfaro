@@ -6,6 +6,9 @@ import { RepositorioCatalogo, RepositorioCupos } from '../dominio/repositorios';
 /** RN-06: se muestran cupos desde ahora hasta 30 días después. */
 export const DIAS_DE_APERTURA = 30;
 
+/** Fin del último día abierto: hoy + 30 días, hasta la medianoche en Lima. */
+export const limiteApertura = (ahora: Date) => inicioDelDiaEnLima(diaEnLima(sumarDias(ahora, DIAS_DE_APERTURA + 1)));
+
 const textoObligatorio = (valor: unknown, nombre: string): string => {
   if (typeof valor !== 'string' || valor.trim() === '') throw new DatosInvalidosError(`El parámetro ${nombre} es obligatorio`);
   return valor;
@@ -68,9 +71,8 @@ export class ConsultarDisponibilidadUseCase {
     return especialidad;
   }
 
-  /** Fin del último día abierto: hoy + 30 días, hasta la medianoche en Lima. */
   private limiteApertura(ahora: Date) {
-    return inicioDelDiaEnLima(diaEnLima(sumarDias(ahora, DIAS_DE_APERTURA + 1)));
+    return limiteApertura(ahora);
   }
 
   private minimo(a: Date, b: Date) {

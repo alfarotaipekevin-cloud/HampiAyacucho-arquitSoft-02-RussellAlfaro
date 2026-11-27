@@ -27,6 +27,17 @@ export interface DatosCita {
   creadaEn: Date;
   /** Spec 007: hora en que el paciente llegó a admisión (null si aún no llega). */
   llegadaEn?: Date | null;
+  /** Spec 008: cuántas veces se cambió la fecha u hora de la cita. */
+  reprogramaciones?: number;
+}
+
+export interface ContextoReprogramacion {
+  nuevoCupo: Cupo;
+  ahora: Date;
+  /** RN-06: fin del último día abierto para reservar (hoy + 30 días). */
+  limiteApertura: Date;
+  /** RN-02: el paciente ya tiene OTRA cita reservada de esta especialidad el día del nuevo cupo. */
+  yaTieneOtraCitaEseDia: boolean;
 }
 
 /** Entidad principal del módulo: contiene las reglas de la cita médica (spec 005, §3). */
@@ -35,6 +46,8 @@ export class Cita {
   static readonly HORAS_MINIMAS_CANCELACION = 2;
   /** RA-04: minutos de tolerancia después de la hora de la cita para registrar la llegada. */
   static readonly MINUTOS_TOLERANCIA = 20;
+  /** RR-03: veces que se puede reprogramar una misma cita. */
+  static readonly MAX_REPROGRAMACIONES = 2;
 
   private constructor(private datos: DatosCita) {}
 
@@ -64,11 +77,12 @@ export class Cita {
       notificacion: 'PENDIENTE',
       creadaEn: c.ahora,
       llegadaEn: null,
+      reprogramaciones: 0,
     });
   }
 
   static restaurar(datos: DatosCita): Cita {
-    return new Cita({ ...datos, llegadaEn: datos.llegadaEn ?? null });
+    return new Cita({ ...datos, llegadaEn: datos.llegadaEn ?? null, reprogramaciones: datos.reprogramaciones ?? 0 });
   }
 
   get id() { return this.datos.id; }
@@ -80,6 +94,9 @@ export class Cita {
   get notificacion() { return this.datos.notificacion; }
   get creadaEn() { return this.datos.creadaEn; }
   get llegadaEn() { return this.datos.llegadaEn ?? null; }
+  get reprogramaciones() { return this.datos.reprogramaciones ?? 0; }
+  /** RR-03 */
+  get reprogramacionesRestantes() { return Math.max(0, Cita.MAX_REPROGRAMACIONES - this.reprogramaciones); }
 
   perteneceA(pacienteId: string): boolean {
     return this.datos.pacienteId === pacienteId;
@@ -105,6 +122,56 @@ export class Cita {
     }
     this.datos.estado = EstadoCita.CANCELADA;
     this.datos.cupo.liberar();
+  }
+
+  /**
+   * Spec 008 · Reprogramar: cambia la cita a otro cupo y conserva el mismo código QR (RR-07).
+   * RR-01 solo reservada y sin llegada · RR-02 hasta 2 horas antes · RR-03 máximo 2 veces ·
+   * RR-04 misma especialidad y establecimiento · RR-05 cupo libre, futuro y dentro de los 30 días · RR-06 RN-02.
+   * Devuelve el cupo anterior, que queda libre.
+   */
+  reprogramar(c: ContextoReprogramacion): Cupo {
+    if (this.datos.estado === EstadoCita.ATENDIDA) {
+      throw new ReglaNegocioError('CITA_ATENDIDA', 'RR-01: una cita atendida no puede reprogramarse');
+    }
+    if (this.datos.estado !== EstadoCita.RESERVADA) {
+      throw new ReglaNegocioError('CITA_NO_RESERVADA', 'RR-01: solo una cita reservada puede reprogramarse');
+    }
+    if (this.datos.llegadaEn) {
+      throw new ReglaNegocioError('LLEGADA_YA_REGISTRADA', 'RR-01: ya registraste tu llegada a esta cita');
+    }
+    if (this.datos.cupo.fechaHora.getTime() - c.ahora.getTime() < Cita.HORAS_MINIMAS_CANCELACION * 3600_000) {
+      throw new ReglaNegocioError('FUERA_DE_PLAZO', `RR-02: solo puedes reprogramar hasta ${Cita.HORAS_MINIMAS_CANCELACION} horas antes de la cita`);
+    }
+    if (this.reprogramaciones >= Cita.MAX_REPROGRAMACIONES) {
+      throw new ReglaNegocioError('LIMITE_REPROGRAMACIONES', `RR-03: esta cita ya se reprogramó ${Cita.MAX_REPROGRAMACIONES} veces`);
+    }
+    const nuevo = c.nuevoCupo;
+    if (nuevo.especialidadId !== this.datos.cupo.especialidadId || nuevo.establecimientoId !== this.datos.cupo.establecimientoId) {
+      throw new ReglaNegocioError('OTRO_SERVICIO', 'RR-04: el nuevo horario debe ser de la misma especialidad y establecimiento');
+    }
+    if (nuevo.id === this.datos.cupo.id) {
+      throw new ReglaNegocioError('MISMO_CUPO', 'RR-05: elige un horario distinto al de tu cita');
+    }
+    if (nuevo.fechaHora <= c.ahora) {
+      throw new ReglaNegocioError('CUPO_VENCIDO', 'RN-09: la hora de este cupo ya pasó');
+    }
+    if (nuevo.fechaHora >= c.limiteApertura) {
+      throw new ReglaNegocioError('FUERA_DE_APERTURA', 'RN-06: solo puedes elegir horarios de los próximos 30 días');
+    }
+    if (!nuevo.estaDisponible()) {
+      throw new ReglaNegocioError('CUPO_NO_DISPONIBLE', 'RN-01: el cupo ya no está disponible');
+    }
+    if (c.yaTieneOtraCitaEseDia) {
+      throw new ReglaNegocioError('CITA_DUPLICADA', 'RN-02: ya tienes una cita en esta especialidad ese día');
+    }
+    const anterior = this.datos.cupo;
+    nuevo.ocupar();
+    anterior.liberar();
+    this.datos.cupo = nuevo;
+    this.datos.reprogramaciones = this.reprogramaciones + 1;
+    this.datos.notificacion = 'PENDIENTE';
+    return anterior;
   }
 
   esDelEstablecimiento(establecimientoId: string): boolean {

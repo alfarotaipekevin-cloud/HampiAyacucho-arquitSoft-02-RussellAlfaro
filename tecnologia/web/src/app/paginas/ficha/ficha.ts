@@ -6,11 +6,12 @@ import { CitasService } from '../../nucleo/citas.service';
 import { esFutura, fechaHoraLarga } from '../../nucleo/formato';
 import { Ficha as FichaCita } from '../../nucleo/modelos';
 import { ESTADOS_CITA, TEXTOS } from '../../nucleo/textos';
+import { Reprogramar } from './reprogramar';
 
-/** HU13 · Ficha de la cita con el QR, descarga en PDF y cancelación (spec 005, §4.2). */
+/** HU13 · Ficha de la cita con el QR, descarga en PDF, cancelación (spec 005, §4.2) y reprogramación (spec 008). */
 @Component({
   selector: 'app-ficha',
-  imports: [RouterLink, BarraPortal],
+  imports: [RouterLink, BarraPortal, Reprogramar],
   templateUrl: './ficha.html',
 })
 export class Ficha {
@@ -29,6 +30,9 @@ export class Ficha {
   protected readonly cancelada = signal(false);
   /** Al venir de la reserva se muestra "Tu cita está reservada" y el aviso del SMS. */
   protected readonly recienReservada = signal(false);
+  protected readonly reprogramando = signal(false);
+  /** Aviso tras reprogramar: 'ENVIADA' o 'PENDIENTE' según el SMS. */
+  protected readonly reprogramada = signal<'' | 'ENVIADA' | 'PENDIENTE'>('');
 
   constructor() {
     const estado = inject(Router).getCurrentNavigation()?.extras.state as { ficha?: FichaCita; recienReservada?: boolean } | undefined;
@@ -44,6 +48,26 @@ export class Ficha {
   protected get sePuedeCancelar(): boolean {
     const f = this.ficha();
     return f !== null && f.estado === 'RESERVADA' && esFutura(f.fechaHora);
+  }
+
+  /** Spec 008 · RR-01 y RR-02: reservada y con más de 2 horas por delante (la API valida también RR-03). */
+  protected get sePuedeReprogramar(): boolean {
+    const f = this.ficha();
+    return f !== null && f.estado === 'RESERVADA' && new Date(f.fechaHora).getTime() - Date.now() > 2 * 3600_000;
+  }
+
+  protected abrirReprogramar(): void {
+    this.reprogramando.set(true);
+    this.reprogramada.set('');
+    setTimeout(() => document.getElementById('titulo-reprogramar')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }
+
+  protected alReprogramar(nueva: FichaCita): void {
+    this.ficha.set(nueva);
+    this.reprogramando.set(false);
+    this.recienReservada.set(false);
+    this.reprogramada.set(nueva.notificacion);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   private async cargar(): Promise<void> {
@@ -87,6 +111,8 @@ export class Ficha {
       this.ficha.set({ ...f, estado: r.estado });
       this.cancelada.set(true);
       this.recienReservada.set(false);
+      this.reprogramando.set(false);
+      this.reprogramada.set('');
     } catch (e) {
       this.error.set(mensajeDeError(e));
     } finally {

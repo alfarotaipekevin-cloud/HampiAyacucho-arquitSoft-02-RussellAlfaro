@@ -6,5 +6,8 @@
 | Portal | 0 | 0 | 0 | 0 | — |
 | Mis citas | 0 | 0 | 0 | 0 | — |
 | Reservar cita (paso 1) | 0 | 0 | 0 | 0 | — |
+| Ficha · reprogramar cita | 0 | 0 | 0 | 0 | — |
 | Portal del personal | 0 | 0 | 0 | 0 | — |
 | Admisión | 0 | 0 | 0 | 0 | — |
+| Admisión · otro día (solo consulta) | 0 | 0 | 0 | 0 | — |
+| Sala de espera (TV) | 0 | 0 | 0 | 0 | — |

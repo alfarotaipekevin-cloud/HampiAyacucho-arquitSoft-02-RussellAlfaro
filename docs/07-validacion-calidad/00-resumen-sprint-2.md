@@ -11,7 +11,7 @@
 | 1 | Implementar el estilo arquitectónico | **Monolito modular** (ADR-001): módulos `identidad`, `portal` y `citas` en una sola aplicación; se comunican solo por su `index.ts` | `tecnologia/api/src/modules/` · prueba `calidad/eq06-mantenibilidad.test.ts` |
 | 2 | Aplicar el enfoque arquitectónico | **Clean Architecture** (ADR-002): `dominio → aplicacion → infraestructura / presentacion` en cada módulo | Ídem; 0 violaciones de la regla de dependencias |
 | 3 | Especificaciones SDD con criterios de aceptación y tareas técnicas | Specs 001–007, cada una con reglas, contrato, criterios Dado/Cuando/Entonces y plan técnico | [`docs/05-desarrollo-sdd/`](../05-desarrollo-sdd/README.md) · specs nuevas: [006](../05-desarrollo-sdd/specs/006-cache-y-validacion/spec.md) y [007](../05-desarrollo-sdd/specs/007-admision-qr/spec.md) (admisión con QR) |
-| 4 | Endpoints REST documentados con OpenAPI/Swagger | 21 operaciones REST (`/api/v1/...`, ADR-003; 5 de admisión, spec 007) con contrato OpenAPI 3 y Swagger UI | `/api/docs` · `src/shared/http/openapi.ts` · [captura](img/swagger-ui.png) |
+| 4 | Endpoints REST documentados con OpenAPI/Swagger | 23 operaciones REST (`/api/v1/...`, ADR-003; 6 de admisión, spec 007; reprogramar, spec 008) con contrato OpenAPI 3 y Swagger UI | `/api/docs` · `src/shared/http/openapi.ts` · [captura](img/swagger-ui.png) |
 | 5 | Analizar la BD y la estrategia de caché | `EXPLAIN ANALYZE` con 1.7 millones de cupos; **caché Redis cache-aside** (ADR-004) con invalidación | [01-analisis-base-de-datos-y-cache.md](01-analisis-base-de-datos-y-cache.md) |
 | 6 | Aplicar SOLID y patrones | Repository, Adapter (PIDE, SMS, PDF, QR), **Decorator** (caché), Factory/raíz de composición, inversión de dependencias con puertos | [Patrones del Sprint 1](../03-diseño-de-software/diseño-interno/patrones-de-diseño.md) · `modules/citas/infraestructura/cache-cupos.ts` |
 | 7 | Pruebas con Jest + CI/CD en GitHub Actions | 125 pruebas (Jest + Playwright); cobertura de la API **94.6 % de líneas**; CI en cada PR | [02-pruebas-automatizadas-jest.md](02-pruebas-automatizadas-jest.md) · `.github/workflows/ci.yml` |
@@ -33,7 +33,7 @@
 | :--- | :---: | :--- |
 | ADR-001 Monolito modular | ✅ | EQ-06: los módulos solo se usan por su API pública |
 | ADR-002 Clean Architecture | ✅ | EQ-06: ningún import de dominio o aplicación apunta a infraestructura |
-| ADR-003 API REST versionada | ✅ | Prueba `api/openapi.test.ts`: las 21 operaciones `/api/v1` existen y coinciden con el contrato |
+| ADR-003 API REST versionada | ✅ | Prueba `api/openapi.test.ts`: las 23 operaciones `/api/v1` existen y coinciden con el contrato |
 | ADR-004 Caché Redis | ✅ (en este sprint) | EQ-01: con caché p95 924 ms; sin caché 3,474 ms |
 | ADR-005 JWT + RBAC (+ 2FA y auditoría) | ✅ JWT y RBAC · ⏳ 2FA y auditoría | EQ-04: 118/118 accesos no autorizados rechazados. 2FA y bitácora son de la HCE, fuera del alcance |
 | ADR-006 Puertos y adaptadores para servicios externos | ✅ | EQ-02: la caída de RENIEC o del SMS se maneja sin errores 500 |

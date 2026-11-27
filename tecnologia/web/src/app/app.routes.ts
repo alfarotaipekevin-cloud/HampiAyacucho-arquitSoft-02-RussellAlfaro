@@ -52,5 +52,11 @@ export const routes: Routes = [
     title: 'Admisión de citas · Hampi Ayacucho',
     loadComponent: () => import('./paginas/admision/admision').then((m) => m.Admision),
   },
+  {
+    path: 'sala-espera',
+    canActivate: [personalGuard],
+    title: 'Sala de espera · Hampi Ayacucho',
+    loadComponent: () => import('./paginas/sala-espera/sala-espera').then((m) => m.SalaEspera),
+  },
   { path: '**', redirectTo: 'ingresar' },
 ];

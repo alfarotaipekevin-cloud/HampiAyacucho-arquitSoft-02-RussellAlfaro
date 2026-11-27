@@ -48,6 +48,14 @@
     "reglas": []
   },
   {
+    "pantalla": "Ficha · reprogramar cita",
+    "criticas": 0,
+    "graves": 0,
+    "moderadas": 0,
+    "leves": 0,
+    "reglas": []
+  },
+  {
     "pantalla": "Portal del personal",
     "criticas": 0,
     "graves": 0,
@@ -57,6 +65,22 @@
   },
   {
     "pantalla": "Admisión",
+    "criticas": 0,
+    "graves": 0,
+    "moderadas": 0,
+    "leves": 0,
+    "reglas": []
+  },
+  {
+    "pantalla": "Admisión · otro día (solo consulta)",
+    "criticas": 0,
+    "graves": 0,
+    "moderadas": 0,
+    "leves": 0,
+    "reglas": []
+  },
+  {
+    "pantalla": "Sala de espera (TV)",
     "criticas": 0,
     "graves": 0,
     "moderadas": 0,

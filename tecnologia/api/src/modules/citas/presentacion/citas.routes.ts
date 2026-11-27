@@ -5,6 +5,7 @@ import { ConsultarDisponibilidadUseCase } from '../aplicacion/consultar-disponib
 import { ConsultarMisCitasUseCase } from '../aplicacion/consultar-mis-citas.use-case';
 import { ExportadorFicha } from '../aplicacion/ficha-cita';
 import { ReservarCitaUseCase } from '../aplicacion/reservar-cita.use-case';
+import { ReprogramarCitaUseCase } from '../aplicacion/reprogramar-cita.use-case';
 import { AdmisionUseCase } from '../aplicacion/admision.use-case';
 
 interface CasosDeUso {
@@ -12,6 +13,7 @@ interface CasosDeUso {
   reservarCita: ReservarCitaUseCase;
   misCitas: ConsultarMisCitasUseCase;
   cancelarCita: CancelarCitaUseCase;
+  reprogramarCita: ReprogramarCitaUseCase;
   exportador: ExportadorFicha;
   admision: AdmisionUseCase;
 }
@@ -49,7 +51,10 @@ export function crearRutasCitas(casos: CasosDeUso, s: Seguridad): Router {
     res.json(await casos.admision.servicios(usuarioDe(req).dni));
   });
   rutas.get('/admision/agenda', s.soloPersonal, async (req, res) => {
-    res.json(await casos.admision.agenda(usuarioDe(req).dni, req.query.especialidadId));
+    res.json(await casos.admision.agenda(usuarioDe(req).dni, req.query.especialidadId, req.query.fecha));
+  });
+  rutas.get('/admision/dias', s.soloPersonal, async (req, res) => {
+    res.json(await casos.admision.dias(usuarioDe(req).dni, req.query.especialidadId));
   });
   rutas.get('/admision/codigo/:codigo', s.soloPersonal, async (req, res) => {
     res.json(await casos.admision.buscarPorCodigo(usuarioDe(req).dni, String(req.params.codigo)));
@@ -78,6 +83,11 @@ export function crearRutasCitas(casos: CasosDeUso, s: Seguridad): Router {
   });
   rutas.patch('/:citaId/cancelar', s.soloPacientes, async (req, res) => {
     res.json(await casos.cancelarCita.ejecutar(usuarioDe(req).id, String(req.params.citaId)));
+  });
+  // Spec 008 · reprogramar
+  rutas.patch('/:citaId/reprogramar', s.soloPacientes, async (req, res) => {
+    const usuario = usuarioDe(req);
+    res.json(await casos.reprogramarCita.ejecutar({ pacienteId: usuario.id, citaId: String(req.params.citaId), cupoId: req.body?.cupoId }));
   });
   rutas.get('/:citaId', s.soloPacientes, async (req, res) => {
     res.json(await casos.misCitas.obtener(usuarioDe(req).id, String(req.params.citaId)));

@@ -84,7 +84,7 @@ Errores con el formato común: `{ "error": { "codigo": "CITA_DUPLICADA", "mensaj
 Todas con **Jest** (ver [docs/07-validacion-calidad/02-pruebas-automatizadas-jest.md](../../docs/07-validacion-calidad/02-pruebas-automatizadas-jest.md)).
 
 ```bash
-npm test                 # 94 pruebas: unitarias, de API y de calidad (EQ-02, EQ-04, EQ-06), en memoria
+npm test                 # 111 pruebas: unitarias, de API y de calidad (EQ-02, EQ-04, EQ-06), en memoria
 npm run test:cobertura   # lo mismo + reporte de cobertura en coverage/index.html
 npm run test:calidad     # solo los escenarios de calidad, con detalle
 # Integración: necesita docker compose up (db + redis + simuladores). BORRA usuarios y citas de esa base.
@@ -105,3 +105,4 @@ INTEGRACION_BD_DESECHABLE=true DATABASE_URL=postgres://hampi:hampi@localhost:543
 | `REDIS_URL` | no | sin ella, caché en memoria del proceso (ADR-004) |
 | `CACHE_DESACTIVADA` | no | `false` (`true` solo para comparar en pruebas de carga) |
 | `PG_POOL_MAX` | no | `20` conexiones por instancia |
+| `CITAS_DEMO` | no | `false`. Con `true` (así viene en Docker Compose y Render) reserva cada día citas ficticias del Hospital Regional y de Huanta para que la demo de admisión nunca esté vacía; avanzan con la hora (`src/db/citas-demo.ts`) |

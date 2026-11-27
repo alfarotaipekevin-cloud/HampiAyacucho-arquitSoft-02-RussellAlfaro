@@ -49,6 +49,29 @@ describe('Spec 007 · admisión con QR (recepción)', () => {
     expect((await api('GET', '/admision/agenda?especialidadId=mg', personal)).cuerpo.citas).toHaveLength(0);
   });
 
+  test('CA-007-10 (RA-06): ve hoy y los próximos 7 días de atención con su conteo, y otro día solo en consulta', async () => {
+    const dias = await api('GET', '/admision/dias?especialidadId=ped', personal);
+    expect(dias.estado).toBe(200);
+    // Miércoles 4 a miércoles 11 de noviembre, sin el domingo 8
+    expect(dias.cuerpo.map((d: any) => d.fecha)).toEqual(['2026-11-04', '2026-11-05', '2026-11-06', '2026-11-07', '2026-11-09', '2026-11-10', '2026-11-11']);
+    expect(dias.cuerpo[0]).toEqual({ fecha: '2026-11-04', hoy: true, citas: 1 });
+    expect(dias.cuerpo[1]).toEqual({ fecha: '2026-11-05', hoy: false, citas: 1 });
+    expect((await api('GET', '/admision/dias?especialidadId=odo', personal)).estado).toBe(404);
+
+    const manana = await api('GET', '/admision/agenda?especialidadId=ped&fecha=2026-11-05', personal);
+    expect(manana.estado).toBe(200);
+    expect(manana.cuerpo).toMatchObject({ fecha: '2026-11-05', soloConsulta: true });
+    expect(manana.cuerpo.citas.map((c: any) => [c.codigo, c.estadoAdmision])).toEqual([[citaManana.codigo, 'POR_LLEGAR']]);
+    expect((await api('GET', '/admision/agenda?especialidadId=ped', personal)).cuerpo.soloConsulta).toBe(false);
+
+    for (const [fecha, codigo] of [['2026-11-12', 'FECHA_FUERA_DE_RANGO'], ['2026-11-03', 'FECHA_FUERA_DE_RANGO'], ['05/11/2026', 'DATOS_INVALIDOS']]) {
+      const r = await api('GET', `/admision/agenda?especialidadId=ped&fecha=${fecha}`, personal);
+      expect(`${fecha} → ${r.estado} ${r.cuerpo.error?.codigo}`).toBe(`${fecha} → 400 ${codigo}`);
+    }
+    // Ver otro día no permite admitir: la llegada sigue siendo solo del mismo día (RA-02)
+    expect((await api('POST', `/admision/${citaManana.citaId}/llegada`, personal)).cuerpo.error.codigo).toBe('CITA_DE_OTRO_DIA');
+  });
+
   test('CA-007-4: al leer el QR se ve la cita y si se puede registrar la llegada (acepta minúsculas)', async () => {
     const r = await api('GET', `/admision/codigo/${citaHoy.codigo.toLowerCase()}`, personal);
     expect(r.estado).toBe(200);

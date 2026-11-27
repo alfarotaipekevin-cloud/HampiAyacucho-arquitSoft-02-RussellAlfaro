@@ -44,8 +44,8 @@ describe('Documentación OpenAPI/Swagger', () => {
     }
   });
 
-  test('el contrato cubre las 21 operaciones de las specs 002 a 005 y 007', () => {
+  test('el contrato cubre las 23 operaciones de las specs 002 a 005, 007 y 008', () => {
     const operaciones = Object.entries(documentoOpenApi.paths).flatMap(([ruta, ops]) => Object.keys(ops).map((m) => `${m.toUpperCase()} ${ruta}`));
-    expect(operaciones).toHaveLength(21);
+    expect(operaciones).toHaveLength(23);
   });
 });

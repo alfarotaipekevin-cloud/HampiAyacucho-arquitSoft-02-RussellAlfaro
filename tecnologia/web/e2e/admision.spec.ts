@@ -67,6 +67,25 @@ test.describe('Recepción (personal de salud)', () => {
       await expect(resultado).toContainText('RA-02');
       await expect(resultado.getByRole('button', { name: 'Registrar llegada' })).toHaveCount(0);
 
+      // RA-06: en la tira de días se ve esa cita como "Programada", solo para consultar.
+      const fechaOtroDia = otroDia.fechaHora.slice(0, 10);
+      const chips = page.locator('.chip-dia');
+      await expect(chips.first()).toBeVisible();
+      const fechas = await page.evaluate(async ([api, token]) => {
+        const r = await fetch(`${api}/api/v1/citas/admision/dias?especialidadId=ped`, { headers: { Authorization: `Bearer ${token}` } });
+        return (await r.json()).map((d: any) => d.fecha);
+      }, [API, await tokenDe(request, PERSONAL.dni, PERSONAL.contrasena)]);
+      const indice = fechas.indexOf(fechaOtroDia);
+      if (indice > 0) {
+        await chips.nth(indice).click();
+        await expect(page.getByText('Solo consulta.')).toBeVisible();
+        const fila = page.locator('.fila-agenda', { hasText: otroDia.codigo });
+        await expect(fila).toContainText('Programada');
+        await expect(fila.getByRole('button')).toHaveCount(0);
+        await chips.first().click();
+        await expect(page.getByRole('heading', { name: 'Citas de hoy' })).toBeVisible();
+      }
+
       if (deHoy) {
         await page.getByRole('button', { name: 'Cambiar servicio' }).click();
         await page.getByRole('button', { name: 'Medicina general' }).click();

@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import { sembrarCitasDelDia } from './db/citas-demo';
 import { CONTRASENA_DEMO, ESPECIALIDADES, ESTABLECIMIENTOS, OFERTAS, PERSONAL_DEMO, USUARIOS_DEMO, generarCupos, sembrarPostgres } from './db/semilla';
 import { migrar } from './db/migrador';
 import { Infraestructura } from './app';
@@ -25,6 +26,8 @@ export interface ConfiguracionInfraestructura {
   costoBcrypt?: number;
   /** Caché de cupos (ADR-004): Redis en producción; por defecto, memoria local. */
   cache?: Cache;
+  /** CITAS_DEMO=true: reserva cada día citas ficticias para que la demo de admisión nunca esté vacía (solo PostgreSQL). */
+  citasDemo?: boolean;
 }
 
 /** Puertos que no dependen de dónde se guardan los datos: PIDE, SMS, QR, PDF, JWT y bcrypt. */
@@ -70,7 +73,18 @@ export async function crearInfraestructuraMemoria(c: ConfiguracionInfraestructur
 export async function crearInfraestructuraPostgres(c: ConfiguracionInfraestructura, bd: Pool): Promise<Infraestructura> {
   const comunes = serviciosComunes(c);
   await migrar(bd);
-  await sembrarPostgres(bd, comunes.reloj.ahora(), () => comunes.hasheador.hashear(CONTRASENA_DEMO));
+  const hashDemo = await comunes.hasheador.hashear(CONTRASENA_DEMO);
+  await sembrarPostgres(bd, comunes.reloj.ahora(), async () => hashDemo);
+  if (c.citasDemo) {
+    // Cada 30 minutos: cupos de los días nuevos y citas de demostración del día, que avanzan con la hora.
+    const refrescar = async () => {
+      await sembrarPostgres(bd, comunes.reloj.ahora(), async () => hashDemo);
+      const n = await sembrarCitasDelDia(bd, comunes.reloj.ahora(), hashDemo, c.cache);
+      if (n) console.log(`Citas de demostración: ${n} nuevas para hoy`);
+    };
+    await refrescar();
+    setInterval(() => refrescar().catch((e) => console.error('No se pudieron refrescar las citas de demostración:', e)), 30 * 60 * 1000).unref();
+  }
   return {
     ...comunes,
     usuarios: new UsuariosPostgresRepository(bd),

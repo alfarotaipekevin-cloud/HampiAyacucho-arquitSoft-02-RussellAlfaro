@@ -22,7 +22,7 @@ export function textoSmsCita(a: AvisoCita): string {
   const fecha = `${dosDigitos(lima.getUTCDate())}/${dosDigitos(lima.getUTCMonth() + 1)}`;
   const hora = `${dosDigitos(lima.getUTCHours())}:${dosDigitos(lima.getUTCMinutes())}`;
   const consultorio = a.consultorio.replace(/^Consultorio/i, 'Cons.');
-  const texto = `Hampi: cita ${a.codigo}, ${a.especialidad}, ${a.establecimiento}, ${fecha} ${hora}, ${consultorio}. Llega 20 min antes con tu DNI.`;
+  const texto = `Hampi: ${a.reprogramada ? 'cita reprogramada' : 'cita'} ${a.codigo}, ${a.especialidad}, ${a.establecimiento}, ${fecha} ${hora}, ${consultorio}. Llega 20 min antes con tu DNI.`;
   return sinTildes(texto).slice(0, 160);
 }
 

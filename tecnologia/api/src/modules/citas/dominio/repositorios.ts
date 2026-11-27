@@ -30,6 +30,11 @@ export interface RepositorioCitas {
    */
   guardarReserva(cita: Cita): Promise<void>;
   actualizar(cita: Cita): Promise<void>;
+  /**
+   * Spec 008 · RR-08: ocupa el nuevo cupo, libera el anterior y mueve la cita en una sola operación atómica.
+   * Si otro paciente ganó el nuevo cupo, lanza CUPO_NO_DISPONIBLE y la cita sigue como estaba.
+   */
+  reprogramar(cita: Cita, cupoAnterior: Cupo): Promise<void>;
   buscarPorId(id: string): Promise<Cita | null>;
   delPaciente(pacienteId: string): Promise<Cita[]>;
   /** Spec 007 · RN-12: el QR lleva solo el código. */

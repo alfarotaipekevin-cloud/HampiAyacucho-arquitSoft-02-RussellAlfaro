@@ -1,7 +1,7 @@
 /**
  * Contrato OpenAPI 3.0 de la API Hampi (Sprint 2, actividad 4).
  * Se sirve en /api/docs (Swagger UI) y /api/docs/openapi.json.
- * Fuente: §5 de las specs 002, 003 y 004, y §4 de la spec 005.
+ * Fuente: §5 de las specs 002, 003 y 004, §4 de la spec 005, y las specs 007 y 008.
  * La prueba pruebas/api/openapi.test.ts falla si una ruta de Express no está documentada aquí.
  */
 
@@ -105,6 +105,9 @@ export const documentoOpenApi = {
           fechaHora: { type: 'string', format: 'date-time' },
           qr: { type: 'string', description: 'Imagen PNG en data URL' },
           notificacion: { type: 'string', enum: ['ENVIADA', 'PENDIENTE'] },
+          especialidadId: { type: 'string', example: 'ped' },
+          establecimientoId: { type: 'string', example: 'hra' },
+          reprogramacionesRestantes: { type: 'integer', minimum: 0, maximum: 2, description: 'Spec 008 · RR-03' },
         },
       },
       ResumenCita: {
@@ -312,6 +315,23 @@ export const documentoOpenApi = {
         },
       },
     },
+    // Spec 008 · Reprogramar cita
+    '/citas/{citaId}/reprogramar': {
+      patch: {
+        tags: ['Citas'],
+        summary: 'Reprogramar una cita a otro horario del mismo servicio (spec 008)',
+        description: 'Hasta 2 horas antes y como máximo 2 veces por cita. El código QR no cambia y se envía un SMS con la nueva fecha. Si otro paciente gana el nuevo cupo, la cita sigue como estaba (RR-08).',
+        security: conToken, parameters: [citaIdParam],
+        requestBody: { required: true, content: json({ type: 'object', required: ['cupoId'], properties: { cupoId: { type: 'string' } } }) },
+        responses: {
+          200: { description: 'Cita reprogramada; el cupo anterior vuelve a estar libre', content: json(ref('Ficha')) },
+          400: error('Falta cupoId', 'DATOS_INVALIDOS'), 401: r401, 403: r403,
+          404: error('Cita o cupo inexistente', 'CITA_NO_EXISTE', 'CUPO_NO_EXISTE'),
+          409: error('Regla de negocio incumplida', 'CUPO_NO_DISPONIBLE', 'FUERA_DE_PLAZO', 'LIMITE_REPROGRAMACIONES', 'OTRO_SERVICIO',
+            'MISMO_CUPO', 'CUPO_VENCIDO', 'FUERA_DE_APERTURA', 'CITA_DUPLICADA', 'CITA_NO_RESERVADA', 'CITA_ATENDIDA', 'LLEGADA_YA_REGISTRADA', 'CITA_CAMBIADA'),
+        },
+      },
+    },
       // Spec 007 · Admisión con QR
     '/citas/admision/servicios': {
       get: {
@@ -322,9 +342,22 @@ export const documentoOpenApi = {
     '/citas/admision/agenda': {
       get: {
         tags: ['Admisión'], summary: 'Citas de hoy de un servicio, con resumen (RA-02)', security: conToken,
+        parameters: [
+          query('especialidadId', 'Servicio elegido por la recepción', true, 'ped'),
+          query('fecha', 'Otro día AAAA-MM-DD de los próximos 7, solo para consultar (RA-06). Por defecto, hoy', false),
+        ],
+        responses: {
+          200: { description: 'Agenda del día', content: json({ type: 'object', properties: { fecha: { type: 'string' }, soloConsulta: { type: 'boolean' }, resumen: { type: 'object' }, citas: { type: 'array', items: ref('CitaDeAgenda') } } }) },
+          400: error('Falta el servicio o la fecha no es válida', 'ESPECIALIDAD_REQUERIDA', 'DATOS_INVALIDOS', 'FECHA_FUERA_DE_RANGO'), 401: r401, 403: r403, 404: error('El establecimiento no atiende ese servicio', 'SERVICIO_NO_EXISTE'),
+        },
+      },
+    },
+    '/citas/admision/dias': {
+      get: {
+        tags: ['Admisión'], summary: 'Hoy y los próximos 7 días de atención, con cuántas citas tiene cada uno (RA-06)', security: conToken,
         parameters: [query('especialidadId', 'Servicio elegido por la recepción', true, 'ped')],
         responses: {
-          200: { description: 'Agenda del día', content: json({ type: 'object', properties: { fecha: { type: 'string' }, resumen: { type: 'object' }, citas: { type: 'array', items: ref('CitaDeAgenda') } } }) },
+          200: { description: 'Días', content: json({ type: 'array', items: { type: 'object', properties: { fecha: { type: 'string', format: 'date' }, hoy: { type: 'boolean' }, citas: { type: 'integer' } } } }) },
           400: error('Falta el servicio', 'ESPECIALIDAD_REQUERIDA'), 401: r401, 403: r403, 404: error('El establecimiento no atiende ese servicio', 'SERVICIO_NO_EXISTE'),
         },
       },

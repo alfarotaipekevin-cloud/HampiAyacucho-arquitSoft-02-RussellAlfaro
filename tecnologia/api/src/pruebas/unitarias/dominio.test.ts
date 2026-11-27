@@ -113,4 +113,71 @@ describe('SMS de la cita', () => {
     expect(texto).toBe('Hampi: cita HAMPI-1A2B3C4D, Pediatria, H. Regional Ayacucho, 05/11 08:20, Cons. 3. Llega 20 min antes con tu DNI.');
     expect(texto.length <= 160).toBeTruthy();
   });
+
+  test('spec 008: el SMS de una cita reprogramada lo dice y no pasa de 160 caracteres', () => {
+    const texto = textoSmsCita({
+      celular: '987654321', codigo: 'HAMPI-1A2B3C4D', especialidad: 'Medicina general', establecimiento: 'C.S. San Juan Bautista',
+      fechaHora: new Date('2026-11-05T12:40:00-05:00'), consultorio: 'Consultorio 1', reprogramada: true,
+    });
+    expect(texto).toMatch(/^Hampi: cita reprogramada HAMPI-1A2B3C4D, Medicina general, .* 05\/11 12:40, .*DNI\.$/);
+    expect(texto.length <= 160).toBeTruthy();
+  });
+});
+
+describe('Spec 008 · Cita.reprogramar', () => {
+  const cupo = (id: string, fechaHora: string, extra: Partial<{ especialidadId: string; establecimientoId: string }> = {}) =>
+    new Cupo({ id, establecimientoId: 'hra', especialidadId: 'ped', consultorio: 'Consultorio 3', medico: 'Dra. Ana Torres',
+      fechaHora: new Date(fechaHora), duracionMin: 20, estado: 'DISPONIBLE', ...extra });
+  const LIMITE = new Date('2026-12-05T00:00:00-05:00');
+  const reservada = () => Cita.reservar(contexto({ cupo: cupo('a', '2026-11-05T08:00:00-05:00') }));
+  const ctx = (nuevo: Cupo, extra: object = {}) => ({ nuevoCupo: nuevo, ahora: AHORA, limiteApertura: LIMITE, yaTieneOtraCitaEseDia: false, ...extra });
+
+  test('mueve la cita, conserva el código, libera el cupo anterior y cuenta la reprogramación', () => {
+    const cita = reservada();
+    const codigo = cita.codigo;
+    const nuevo = cupo('b', '2026-11-06T09:00:00-05:00');
+    const anterior = cita.reprogramar(ctx(nuevo));
+    expect(anterior.id).toBe('a');
+    expect(anterior.estaDisponible()).toBe(true);
+    expect(nuevo.estaDisponible()).toBe(false);
+    expect(cita.cupo.id).toBe('b');
+    expect(cita.codigo).toBe(codigo);
+    expect(cita.reprogramaciones).toBe(1);
+    expect(cita.reprogramacionesRestantes).toBe(1);
+    expect(cita.notificacion).toBe('PENDIENTE');
+  });
+
+  test('cada regla rechaza sin tocar los cupos ni la cita', () => {
+    const ocupado = cupo('o', '2026-11-06T09:00:00-05:00');
+    ocupado.ocupar();
+    const casos: [() => Cita, Cupo, object, string][] = [
+      [reservada, cupo('b', '2026-11-06T09:00:00-05:00', { especialidadId: 'mg' }), {}, 'OTRO_SERVICIO'],
+      [reservada, cupo('b', '2026-11-06T09:00:00-05:00', { establecimientoId: 'hah' }), {}, 'OTRO_SERVICIO'],
+      [reservada, cupo('a', '2026-11-05T08:00:00-05:00'), {}, 'MISMO_CUPO'],
+      [reservada, cupo('b', '2026-11-04T09:00:00-05:00'), {}, 'CUPO_VENCIDO'],
+      [reservada, cupo('b', '2026-12-05T08:00:00-05:00'), {}, 'FUERA_DE_APERTURA'],
+      [reservada, ocupado, {}, 'CUPO_NO_DISPONIBLE'],
+      [reservada, cupo('b', '2026-11-06T09:00:00-05:00'), { yaTieneOtraCitaEseDia: true }, 'CITA_DUPLICADA'],
+      [reservada, cupo('b', '2026-11-06T09:00:00-05:00'), { ahora: new Date('2026-11-05T06:30:00-05:00') }, 'FUERA_DE_PLAZO'],
+      [() => { const c = reservada(); c.registrarLlegada(new Date('2026-11-05T07:40:00-05:00'), 'hra'); return c; },
+        cupo('b', '2026-11-06T09:00:00-05:00'), { ahora: new Date('2026-11-05T05:00:00-05:00') }, 'LLEGADA_YA_REGISTRADA'],
+      [() => { const c = reservada(); c.confirmarAsistencia(); return c; }, cupo('b', '2026-11-06T09:00:00-05:00'), {}, 'CITA_ATENDIDA'],
+      [() => { const c = reservada(); c.cancelar(AHORA); return c; }, cupo('b', '2026-11-06T09:00:00-05:00'), {}, 'CITA_NO_RESERVADA'],
+    ];
+    for (const [crear, nuevo, extra, codigo] of casos) {
+      const cita = crear();
+      const libreAntes = nuevo.estaDisponible();
+      expect(() => cita.reprogramar(ctx(nuevo, extra))).toThrow(expect.objectContaining({ codigo }));
+      expect(nuevo.estaDisponible()).toBe(libreAntes);
+      expect(cita.reprogramaciones).toBe(0);
+    }
+  });
+
+  test('RR-03: la tercera reprogramación se rechaza', () => {
+    const cita = reservada();
+    cita.reprogramar(ctx(cupo('b', '2026-11-06T09:00:00-05:00')));
+    cita.reprogramar(ctx(cupo('c', '2026-11-07T09:00:00-05:00')));
+    expect(cita.reprogramacionesRestantes).toBe(0);
+    expect(() => cita.reprogramar(ctx(cupo('d', '2026-11-09T09:00:00-05:00')))).toThrow(expect.objectContaining({ codigo: 'LIMITE_REPROGRAMACIONES' }));
+  });
 });

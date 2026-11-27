@@ -66,6 +66,10 @@ export interface Ficha {
   fechaHora: string;
   qr: string;
   notificacion: 'ENVIADA' | 'PENDIENTE';
+  /** Spec 008 */
+  especialidadId: string;
+  establecimientoId: string;
+  reprogramacionesRestantes: number;
 }
 
 export interface CitaResumen {
@@ -100,8 +104,17 @@ export interface CitaAgenda {
 
 export interface AgendaDia {
   fecha: string;
+  /** RA-06: otro día que no es hoy; solo se consulta. */
+  soloConsulta?: boolean;
   resumen: { porLlegar: number; enEspera: number; atendidas: number; noLlegaron: number };
   citas: CitaAgenda[];
+}
+
+/** RA-06: un día de la tira de días de la admisión. */
+export interface DiaAgenda {
+  fecha: string;
+  hoy: boolean;
+  citas: number;
 }
 
 export interface LecturaQr extends CitaAgenda {

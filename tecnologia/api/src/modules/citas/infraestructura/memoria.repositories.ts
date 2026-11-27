@@ -95,6 +95,24 @@ export class CitasMemoriaRepository implements RepositorioCitas {
     this.cupos.filas.set(cita.cupo.id, cita.cupo.instantanea());
   }
 
+  /** Sin "await" entre las verificaciones y las escrituras: atómico en Node (RR-08). */
+  async reprogramar(cita: Cita, cupoAnterior: Cupo) {
+    const cupoAnteriorId = cupoAnterior.id;
+    const nuevo = this.cupos.filas.get(cita.cupo.id);
+    if (!nuevo || nuevo.estado !== 'DISPONIBLE') {
+      throw new ReglaNegocioError('CUPO_NO_DISPONIBLE', 'RN-01: el cupo ya no está disponible');
+    }
+    const actual = this.filas.get(cita.id);
+    if (!actual || actual.cupoId !== cupoAnteriorId || actual.estado !== EstadoCita.RESERVADA || actual.llegadaEn
+      || (actual.reprogramaciones ?? 0) !== cita.reprogramaciones - 1) {
+      throw new ReglaNegocioError('CITA_CAMBIADA', 'La cita cambió mientras la reprogramabas; vuelve a intentarlo');
+    }
+    nuevo.estado = 'OCUPADO';
+    const anterior = this.cupos.filas.get(cupoAnteriorId);
+    if (anterior) anterior.estado = 'DISPONIBLE';
+    this.filas.set(cita.id, this.aFila(cita));
+  }
+
   async buscarPorId(id: string) {
     const fila = this.filas.get(id);
     return fila ? this.aCita(fila) : null;
@@ -121,7 +139,7 @@ export class CitasMemoriaRepository implements RepositorioCitas {
     return {
       id: cita.id, codigo: cita.codigo, pacienteId: cita.pacienteId, dniPaciente: cita.dniPaciente,
       cupoId: cita.cupo.id, estado: cita.estado, notificacion: cita.notificacion, creadaEn: cita.creadaEn,
-      llegadaEn: cita.llegadaEn,
+      llegadaEn: cita.llegadaEn, reprogramaciones: cita.reprogramaciones,
     };
   }
 
