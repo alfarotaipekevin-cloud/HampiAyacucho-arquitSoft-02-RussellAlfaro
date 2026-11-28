@@ -98,8 +98,9 @@ Alcance actual: **módulo de reserva de citas** y acceso al portal.
 | :--- | :--- |
 | [00-resumen-sprint-2.md](docs/07-validacion-calidad/00-resumen-sprint-2.md) | Actividades y entregables de la guía, con su evidencia |
 | [01-analisis-base-de-datos-y-cache.md](docs/07-validacion-calidad/01-analisis-base-de-datos-y-cache.md) | `EXPLAIN ANALYZE` con 1.7 M de cupos, índices, concurrencia y caché Redis (ADR-004) |
-| [02-pruebas-automatizadas-jest.md](docs/07-validacion-calidad/02-pruebas-automatizadas-jest.md) | 125 pruebas, cobertura de la API (94.6 % de líneas) y CI en GitHub Actions |
+| [02-pruebas-automatizadas-jest.md](docs/07-validacion-calidad/02-pruebas-automatizadas-jest.md) | 156 pruebas, cobertura de la API (94.6 % de líneas) y CI en GitHub Actions |
 | [03-validacion-atributos-calidad.md](docs/07-validacion-calidad/03-validacion-atributos-calidad.md) | Resultados de EQ-01 a EQ-06 (k6 con 2,000 usuarios, Jest, axe-core) |
+| [04-guia-de-exposicion.md](docs/07-validacion-calidad/04-guia-de-exposicion.md) | Guía para exponer el Sprint 2: qué abrir y qué comando correr (Windows + Docker Desktop) |
 | API documentada | <http://localhost:3000/api/docs> (Swagger UI) |
 
 ## Stack tecnológico propuesto

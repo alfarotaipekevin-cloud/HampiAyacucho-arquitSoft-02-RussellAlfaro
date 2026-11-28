@@ -8,37 +8,40 @@ Todas las pruebas usan **Jest 29 + ts-jest**. Antes usaban el runner propio de N
 
 | Paquete | Proyecto Jest | Qué prueba | Pruebas | Comando |
 | :--- | :--- | :--- | ---: | :--- |
-| `tecnologia/api` | `unitarias` | Entidades y reglas de negocio (RN-01…RN-15) sin HTTP ni BD; caché (cache-aside, invalidación, fallas) | 20 | `npm test` |
-| `tecnologia/api` | `api` | Endpoints REST en memoria con la PIDE y el SMS falsos: un caso por criterio de aceptación de las specs 002–005; contrato OpenAPI | 52 | `npm test` |
+| `tecnologia/api` | `unitarias` | Entidades y reglas de negocio (RN-01…RN-15) sin HTTP ni BD; caché (cache-aside, invalidación, fallas) | 27 | `npm test` |
+| `tecnologia/api` | `api` | Endpoints REST en memoria con la PIDE y el SMS falsos: un caso por criterio de aceptación de las specs 002–008 (reserva, admisión con QR, reprogramar); contrato OpenAPI | 71 | `npm test` |
 | `tecnologia/api` | `calidad` | Escenarios EQ-02, EQ-04 y EQ-06 | 13 | `npm run test:calidad` |
-| `tecnologia/api` | `integracion` | API + PostgreSQL + Redis + simuladores reales (concurrencia RN-11, RN-02, invalidación en Redis) | 8 | `npm run test:integracion` |
+| `tecnologia/api` | `integracion` | API + PostgreSQL + Redis + simuladores reales (concurrencia RN-11, RN-02, invalidación en Redis) | 9 | `npm run test:integracion` |
 | `simuladores/mock-pide-reniec` | — | Contrato del simulador de RENIEC | 8 | `npm test` |
 | `simuladores/mock-sms` | — | Contrato del simulador de SMS | 6 | `npm test` |
 | `boilerplate-clean-arquitecture` | — | Ejemplo del Sprint 1 | 8 | `npm test` |
-| `tecnologia/web` | Playwright | Punta a punta (5) y accesibilidad con axe (5) | 10 | `npx playwright test` |
-| **Total** | | | **125** | |
+| `tecnologia/web` | Playwright | Punta a punta y accesibilidad con axe (11 pantallas) | 14 | `npx playwright test` |
+| **Total** | | | **156** | |
 
 ## 2. Reporte de cobertura (API)
 
-`npm run test:cobertura` → `tecnologia/api/coverage/index.html` (en el CI se publica como artefacto **cobertura-api**).
+`npm run test:cobertura` → `tecnologia/api/coverage/index.html` (en el CI se publica como artefacto **cobertura-api**). Medición del 28/11/2026 con 111 pruebas (unitarias + api + calidad). [Captura del reporte](img/cobertura-jest.png).
 
 | Métrica | Cobertura | Umbral mínimo (falla el CI si baja) |
 | :--- | ---: | ---: |
 | Líneas | **94.6 %** | 70 % |
-| Sentencias | **94.0 %** | 70 % |
-| Funciones | **91.1 %** | 70 % |
-| Ramas | **76.4 %** | 60 % |
+| Sentencias | **93.7 %** | 70 % |
+| Funciones | **90.9 %** | 70 % |
+| Ramas | **79.0 %** | 60 % |
 
 | Carpeta | Sentencias | Ramas | Líneas |
 | :--- | ---: | ---: | ---: |
-| `modules/citas/dominio` | 98.3 % | 92.3 % | 98.3 % |
-| `modules/citas/aplicacion` | 98.3 % | 71.4 % | 98.1 % |
-| `modules/citas/infraestructura` | 98.7 % | 92.6 % | 98.5 % |
+| `modules/citas/dominio` | 98.2 % | 93.0 % | 98.2 % |
+| `modules/citas/aplicacion` | 97.7 % | 78.6 % | 98.6 % |
+| `modules/citas/infraestructura` | 98.0 % | 86.5 % | 97.6 % |
 | `modules/citas/presentacion` | 100 % | 100 % | 100 % |
 | `modules/identidad/dominio` | 98.2 % | 94.4 % | 98.0 % |
 | `modules/identidad/aplicacion` | 97.2 % | 83.9 % | 99.0 % |
+| `modules/identidad/infraestructura` | 81.6 % | 57.1 % | 84.8 % |
+| `modules/identidad/presentacion` | 100 % | 75.0 % | 100 % |
 | `modules/portal/*` | 100 % | 100 % | 100 % |
 | `shared/dominio` | 97.6 % | 100 % | 100 % |
+| `shared/http` | 90.0 % | 83.3 % | 91.7 % |
 | `shared/infraestructura` (clientes HTTP de PIDE y SMS) | 58.0 % | 26.7 % | 62.2 % |
 
 **Fuera del cálculo, a propósito:** los repositorios PostgreSQL, el adaptador Redis, las migraciones y `server.ts`. Necesitan servicios reales y se prueban en el proyecto `integracion`. Los clientes HTTP de PIDE y SMS tienen la cobertura más baja porque en las pruebas unitarias se reemplazan por dobles; su camino feliz se prueba en integración contra los simuladores.

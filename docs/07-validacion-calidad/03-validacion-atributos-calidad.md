@@ -2,7 +2,7 @@
 
 > **Sprint 2 del curso · Actividad 8.** Entregable: *evidencias y resultados de validación de los atributos de calidad*.
 > Escenarios: [08-escenarios-atributos-calidad.md](../01-analisis-de-sistema/08-escenarios-atributos-calidad.md) · Scripts: [`tecnologia/pruebas-calidad/`](../../tecnologia/pruebas-calidad/README.md).
-> Fecha de ejecución: 22/11/2026.
+> Fecha de ejecución: 22/11/2026 (k6) · actualizado el 28/11/2026 (EQ-04, EQ-05 y Postman/Newman).
 
 ## Resumen
 
@@ -11,8 +11,8 @@
 | **EQ-01** Rendimiento | p95 ≤ 2 s y < 1 % de errores 5xx | k6, hasta **2,000 usuarios** | p95 **924 ms**, 0 % de errores, 929 peticiones/s (con Redis) | ✅ |
 | **EQ-02** Disponibilidad | La operación sigue respondiendo si falla una instancia o un servicio externo | k6 + 2 instancias + balanceador; Jest | **0 errores** en 39,851 peticiones mientras se apagaron una instancia y Redis | ✅ |
 | **EQ-03** Escalabilidad | 15,000 usuarios, p95 < 3 s | k6 (tendencia) | No ejecutable con recursos gratuitos; se demuestra la condición (API sin estado + caché compartida) | ⚠️ Parcial |
-| **EQ-04** Seguridad | 100 % de intentos no autorizados rechazados | Jest (matriz) | **118 de 118** rechazados (401/403); 26 accesos legítimos permitidos (incluye las 5 operaciones de admisión, spec 007) | ✅ (sin bitácora) |
-| **EQ-05** Accesibilidad | 0 errores críticos WCAG 2.1 AA | axe-core + Playwright | **0 críticos** y 0 graves en 6 pantallas (se corrigió 1 de contraste) | ✅ (sin quechua) |
+| **EQ-04** Seguridad | 100 % de intentos no autorizados rechazados | Jest (matriz) | **134 de 134** rechazados (401/403); 28 accesos legítimos permitidos (incluye admisión, spec 007, y reprogramar, spec 008) | ✅ (sin bitácora) |
+| **EQ-05** Accesibilidad | 0 errores críticos WCAG 2.1 AA | axe-core + Playwright | **0 críticos** y 0 graves en 11 pantallas (se corrigió 1 de contraste) | ✅ (sin quechua) |
 | **EQ-06** Mantenibilidad | Ningún import de `dominio/` apunta a infraestructura | Jest (análisis de imports) | **0 violaciones** de la regla de dependencias ni entre módulos | ✅ |
 
 ---
@@ -104,22 +104,22 @@ No es posible generar 15,000 usuarios virtuales con una sola máquina ni con pla
 
 ## EQ-04 · Seguridad
 
-`api/src/pruebas/calidad/eq04-seguridad.test.ts` recorre **todas las operaciones protegidas del contrato OpenAPI** (11) con 9 tipos de credencial:
+`api/src/pruebas/calidad/eq04-seguridad.test.ts` recorre **todas las operaciones protegidas del contrato OpenAPI** con 9 tipos de credencial:
 
 | Credencial | Respuesta esperada | Resultado |
 | :--- | :--- | :---: |
-| Sin token, token alterado, vencido, firmado con otra clave, con `alg: none` | 401 `SESION_REQUERIDA` en las 11 operaciones (55 intentos) | ✅ 55/55 |
-| `ESPECIALISTA_GERESA`, `ADMINISTRADOR` en operaciones de citas; `PERSONAL_SALUD` en operaciones solo de pacientes | 403 `ROL_NO_AUTORIZADO` (23 intentos) | ✅ 23/23 |
-| Roles con permiso | Acceso permitido (21 accesos) | ✅ |
+| Sin token, token alterado, vencido, firmado con otra clave, con `alg: none` | 401 `SESION_REQUERIDA` en cada operación protegida | ✅ todos |
+| `ESPECIALISTA_GERESA`, `ADMINISTRADOR` en operaciones de citas; `PERSONAL_SALUD` en operaciones solo de pacientes | 403 `ROL_NO_AUTORIZADO` | ✅ todos |
+| Roles con permiso | Acceso permitido (28 accesos) | ✅ |
 | Errores | Sin trazas, SQL ni hashes en el cuerpo; sin cabecera `X-Powered-By` | ✅ |
 
-**Total: 118 de 118 intentos no autorizados rechazados (100 %).** Otras pruebas de seguridad del módulo: contraseñas con bcrypt, bloqueo de la cuenta al quinto intento (CA-002-8), un paciente no puede ver la cita de otro (CA-005-10).
+**Total: 134 de 134 intentos no autorizados rechazados (100 %).** Otras pruebas de seguridad del módulo: contraseñas con bcrypt, bloqueo de la cuenta al quinto intento (CA-002-8), un paciente no puede ver la cita de otro (CA-005-10).
 
 **Fuera del alcance:** la bitácora de auditoría y el 2FA de ADR-005 son para la HCE y el personal de salud, módulos que no entran en este semestre. El cifrado en tránsito (HTTPS) lo dan Vercel y Render al desplegar.
 
 ## EQ-05 · Accesibilidad
 
-`web/e2e/accesibilidad.spec.ts` audita con **axe-core** (reglas WCAG 2.0/2.1 A y AA) las pantallas del flujo de reserva:
+`web/e2e/accesibilidad.spec.ts` audita con **axe-core** (reglas WCAG 2.0/2.1 A y AA) las pantallas del paciente y del personal (detalle en `tecnologia/pruebas-calidad/accesibilidad/resultados/axe-resumen.md`):
 
 | Pantalla | Críticas | Graves | Moderadas | Leves |
 | :--- | ---: | ---: | ---: | ---: |
@@ -129,11 +129,27 @@ No es posible generar 15,000 usuarios virtuales con una sola máquina ni con pla
 | Portal | 0 | 0 | 0 | 0 |
 | Mis citas | 0 | 0 | 0 | 0 |
 | Reservar cita (paso 1) | 0 | 0 | 0 | 0 |
+| Ficha · reprogramar cita | 0 | 0 | 0 | 0 |
+| Portal del personal | 0 | 0 | 0 | 0 |
+| Admisión | 0 | 0 | 0 | 0 |
+| Admisión · otro día (solo consulta) | 0 | 0 | 0 | 0 |
+| Sala de espera (TV) | 0 | 0 | 0 | 0 |
 
 - En la primera ejecución el **Portal** tenía 1 error grave de contraste (`color-contrast`): las tarjetas *Próximamente* usaban `opacity: 0.55`. Se cambió por fondo gris y borde punteado y la auditoría quedó en 0. Es un ejemplo de cómo la prueba detecta y evita regresiones.
 - También se comprueba que el formulario de ingreso se completa solo con el teclado.
+- Al agregar el selector de días de Admisión (RA-06), axe detectó poco contraste en el contador del día elegido; se oscureció el fondo y volvió a 0.
 
 **Pendiente:** la traducción al quechua (50 % de la medida) no está implementada; requiere validar los textos con hablantes de quechua ayacuchano.
+
+## Pruebas funcionales de la API con Postman / Newman
+
+Colección: [`tecnologia/pruebas-calidad/postman/hampi-api.postman_collection.json`](../../tecnologia/pruebas-calidad/postman/hampi-api.postman_collection.json). Recorre el flujo completo contra la API levantada: ingreso, portal, disponibilidad, reserva, regla RN-01 (409), ficha, reprogramar (RR-03, RR-07), admisión del personal, seguridad (401/403/404) y cancelación.
+
+| Peticiones | Aserciones | Fallidas | Tiempo promedio | Máximo |
+| ---: | ---: | ---: | ---: | ---: |
+| 24 | 53 | **0** | 25 ms | 232 ms |
+
+Detalle por petición: [`postman/resultados/newman-resumen.md`](../../tecnologia/pruebas-calidad/postman/resultados/newman-resumen.md).
 
 ## EQ-06 · Mantenibilidad
 
