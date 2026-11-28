@@ -11,6 +11,7 @@ El informe con los resultados está en [docs/07-validacion-calidad/03-validacion
 | EQ-04 Seguridad | **Jest** (matriz rol × endpoint) | `api/src/pruebas/calidad/eq04-seguridad.test.ts` | `cd ../api && npm run test:calidad` |
 | EQ-05 Accesibilidad | **axe-core + Playwright** (WCAG 2.1 AA) | `web/e2e/accesibilidad.spec.ts` | `cd ../web && npx playwright test accesibilidad` |
 | EQ-06 Mantenibilidad | **Jest** (regla de dependencias) | `api/src/pruebas/calidad/eq06-mantenibilidad.test.ts` | `cd ../api && npm run test:calidad` |
+| Flujo de la API (actividad 4 y 8) | **Postman / Newman** | `postman/hampi-api.postman_collection.json` | `npx newman run postman/hampi-api.postman_collection.json` (o con Docker, ver [postman/README.md](postman/README.md)) |
 | BD y caché (actividad 5) | **psql** `EXPLAIN ANALYZE` | `bd/analisis-bd.sql` | `psql "$DATABASE_URL" -f bd/analisis-bd.sql > bd/resultados/analisis-bd.txt` |
 
 ## Entorno para k6

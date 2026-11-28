@@ -1,0 +1,999 @@
+{
+  "info": {
+    "name": "Hampi Ayacucho · API de citas (Sprint 2)",
+    "description": "Recorrido de la API REST /api/v1 con pruebas automáticas: identidad, disponibilidad, reserva, reprogramación, cancelación, admisión y seguridad (EQ-04). Se ejecuta en orden con el Runner de Postman o con Newman. Cuentas demo: paciente 70000001 y personal 70000099, contraseña Hampi2026.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1"
+    },
+    {
+      "key": "dniPaciente",
+      "value": "70000001"
+    },
+    {
+      "key": "dniPersonal",
+      "value": "70000099"
+    },
+    {
+      "key": "contrasena",
+      "value": "Hampi2026"
+    },
+    {
+      "key": "especialidadId",
+      "value": "ped"
+    },
+    {
+      "key": "establecimientoId",
+      "value": "hra"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Identidad (spec 002)",
+      "item": [
+        {
+          "name": "Iniciar sesión como paciente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('EQ-01: responde en menos de 2 s', () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "const r = pm.response.json();",
+                  "pm.test('devuelve un JWT con rol PACIENTE', () => { pm.expect(r.token.split('.')).to.have.length(3); pm.expect(r.usuario.rol).to.eql('PACIENTE'); });",
+                  "pm.collectionVariables.set('tokenPaciente', r.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/identidad/sesion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "identidad",
+                "sesion"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroDocumento\": \"{{dniPaciente}}\",\n  \"contrasena\": \"{{contrasena}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Contraseña incorrecta (CA-002-7)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('rechaza con 401', () => pm.response.to.have.status(401));",
+                  "pm.test('no expone datos internos', () => pm.expect(pm.response.text()).to.not.match(/stack|SELECT|hash/i));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/identidad/sesion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "identidad",
+                "sesion"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroDocumento\": \"70000002\",\n  \"contrasena\": \"NoEsLaClave1\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Mis datos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('es el paciente 70000001', () => pm.expect(pm.response.json().dni).to.eql(pm.collectionVariables.get('dniPaciente')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenPaciente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/identidad/yo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "identidad",
+                "yo"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Portal y disponibilidad (specs 003 y 004)",
+      "item": [
+        {
+          "name": "Módulos del portal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Citas está activo', () => pm.expect(pm.response.json().modulos.find(m => m.clave === 'citas').estado).to.eql('ACTIVO'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenPaciente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/portal/modulos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "portal",
+                "modulos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Especialidades",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('EQ-01: responde en menos de 2 s', () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test('trae las 5 especialidades', () => pm.expect(pm.response.json()).to.have.length(5));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenPaciente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/citas/especialidades",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "citas",
+                "especialidades"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Establecimientos con Pediatría (RN-08)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('incluye el Hospital Regional', () => pm.expect(pm.response.json().map(e => e.id)).to.include('hra'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenPaciente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/citas/establecimientos?especialidadId={{especialidadId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "citas",
+                "establecimientos"
+              ],
+              "query": [
+                {
+                  "key": "especialidadId",
+                  "value": "{{especialidadId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Días con cupos libres",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('EQ-01: responde en menos de 2 s', () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "const fechas = pm.response.json();",
+                  "pm.test('hay días disponibles en los próximos 30 (RN-06)', () => pm.expect(fechas.length).to.be.above(0));",
+                  "pm.collectionVariables.set('fecha', fechas[1] || fechas[0]);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenPaciente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/citas/cupos/fechas?especialidadId={{especialidadId}}&establecimientoId={{establecimientoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "citas",
+                "cupos",
+                "fechas"
+              ],
+              "query": [
+                {
+                  "key": "especialidadId",
+                  "value": "{{especialidadId}}"
+                },
+                {
+                  "key": "establecimientoId",
+                  "value": "{{establecimientoId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cupos libres del día (caché Redis, ADR-004)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('EQ-01: responde en menos de 2 s', () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "const cupos = pm.response.json();",
+                  "pm.test('hay al menos 2 cupos ordenados por hora', () => { pm.expect(cupos.length).to.be.at.least(2); pm.expect(cupos[0].fechaHora <= cupos[1].fechaHora).to.be.true; });",
+                  "pm.collectionVariables.set('cupoId', cupos[0].id);",
+                  "pm.collectionVariables.set('cupoNuevoId', cupos[cupos.length - 1].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenPaciente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/citas/cupos?especialidadId={{especialidadId}}&establecimientoId={{establecimientoId}}&fecha={{fecha}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "citas",
+                "cupos"
+              ],
+              "query": [
+                {
+                  "key": "especialidadId",
+                  "value": "{{especialidadId}}"
+                },
+                {
+                  "key": "establecimientoId",
+                  "value": "{{establecimientoId}}"
+                },
+                {
+                  "key": "fecha",
+                  "value": "{{fecha}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Reserva, reprogramación y cancelación (specs 005 y 008)",
+      "item": [
+        {
+          "name": "Liberar citas anteriores del paciente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "const token = pm.collectionVariables.get('tokenPaciente');",
+                  "pm.response.json().forEach(c => pm.sendRequest({ url: pm.collectionVariables.get('baseUrl') + '/citas/' + c.citaId + '/cancelar', method: 'PATCH', header: { Authorization: 'Bearer ' + token } }, () => {}));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "description": "Cancela las citas reservadas de ejecuciones anteriores para no chocar con RN-02 y RN-10.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenPaciente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/citas/mias?estado=RESERVADA",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "citas",
+                "mias"
+              ],
+              "query": [
+                {
+                  "key": "estado",
+                  "value": "RESERVADA"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reservar una cita (HU02)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201));",
+                  "pm.test('EQ-01: responde en menos de 2 s', () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "const f = pm.response.json();",
+                  "pm.test('la ficha trae código HAMPI y QR (RN-12)', () => { pm.expect(f.codigo).to.match(/^HAMPI-[0-9A-F]{8}$/); pm.expect(f.qr).to.match(/^data:image\\/png;base64,/); });",
+                  "pm.test('queda RESERVADA con 2 reprogramaciones disponibles', () => { pm.expect(f.estado).to.eql('RESERVADA'); pm.expect(f.reprogramacionesRestantes).to.eql(2); });",
+                  "pm.collectionVariables.set('citaId', f.citaId);",
+                  "pm.collectionVariables.set('codigo', f.codigo);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenPaciente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/citas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "citas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cupoId\": \"{{cupoId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "El mismo cupo ya no está libre (RN-01)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 409', () => pm.response.to.have.status(409));",
+                  "pm.test('con un código de regla de negocio', () => pm.expect(pm.response.json().error.codigo).to.be.oneOf(['CUPO_NO_DISPONIBLE', 'CITA_DUPLICADA']));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenPaciente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/citas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "citas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cupoId\": \"{{cupoId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Mis citas (HU13)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('aparece la cita reservada', () => pm.expect(pm.response.json().map(c => c.codigo)).to.include(pm.collectionVariables.get('codigo')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenPaciente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/citas/mias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "citas",
+                "mias"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ficha de la cita",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('es la misma cita', () => pm.expect(pm.response.json().codigo).to.eql(pm.collectionVariables.get('codigo')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenPaciente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/citas/{{citaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "citas",
+                "{{citaId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reprogramar a otro horario (spec 008)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "const f = pm.response.json();",
+                  "pm.test('conserva el código QR (RR-07)', () => pm.expect(f.codigo).to.eql(pm.collectionVariables.get('codigo')));",
+                  "pm.test('le queda 1 reprogramación (RR-03)', () => pm.expect(f.reprogramacionesRestantes).to.eql(1));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenPaciente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/citas/{{citaId}}/reprogramar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "citas",
+                "{{citaId}}",
+                "reprogramar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cupoId\": \"{{cupoNuevoId}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Admisión del personal (spec 007)",
+      "item": [
+        {
+          "name": "Iniciar sesión como personal de salud",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('rol PERSONAL_SALUD', () => pm.expect(pm.response.json().usuario.rol).to.eql('PERSONAL_SALUD'));",
+                  "pm.collectionVariables.set('tokenPersonal', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/identidad/sesion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "identidad",
+                "sesion"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroDocumento\": \"{{dniPersonal}}\",\n  \"contrasena\": \"{{contrasena}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Servicios del establecimiento (RA-01)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('es el Hospital Regional', () => pm.expect(pm.response.json().establecimiento.id).to.eql('hra'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenPersonal}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/citas/admision/servicios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "citas",
+                "admision",
+                "servicios"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Días de la semana con su conteo (RA-06)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('hoy va primero', () => pm.expect(pm.response.json()[0].hoy).to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenPersonal}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/citas/admision/dias?especialidadId={{especialidadId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "citas",
+                "admision",
+                "dias"
+              ],
+              "query": [
+                {
+                  "key": "especialidadId",
+                  "value": "{{especialidadId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Agenda del día de la cita (solo consulta)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('aparece la cita del paciente', () => pm.expect(pm.response.json().citas.map(c => c.codigo)).to.include(pm.collectionVariables.get('codigo')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenPersonal}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/citas/admision/agenda?especialidadId={{especialidadId}}&fecha={{fecha}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "citas",
+                "admision",
+                "agenda"
+              ],
+              "query": [
+                {
+                  "key": "especialidadId",
+                  "value": "{{especialidadId}}"
+                },
+                {
+                  "key": "fecha",
+                  "value": "{{fecha}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Leer el QR de la ficha (RN-12)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "const l = pm.response.json();",
+                  "pm.test('muestra el DNI para compararlo', () => pm.expect(l.dni).to.eql(pm.collectionVariables.get('dniPaciente')));",
+                  "pm.test('una cita de otro día no se puede admitir (RA-02)', () => pm.expect(l.puedeRegistrarLlegada).to.be.false);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenPersonal}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/citas/admision/codigo/{{codigo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "citas",
+                "admision",
+                "codigo",
+                "{{codigo}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Seguridad (EQ-04)",
+      "item": [
+        {
+          "name": "Sin token: 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('código SESION_REQUERIDA', () => pm.expect(pm.response.json().error.codigo).to.eql('SESION_REQUERIDA'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/citas/mias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "citas",
+                "mias"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Paciente en admisión: 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));",
+                  "pm.test('código ROL_NO_AUTORIZADO', () => pm.expect(pm.response.json().error.codigo).to.eql('ROL_NO_AUTORIZADO'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenPaciente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/citas/admision/servicios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "citas",
+                "admision",
+                "servicios"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Personal no puede reservar: 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenPersonal}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/citas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "citas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cupoId\": \"{{cupoId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Cita de otro usuario: 404 (CA-005-10)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('no la ve (403 o 404)', () => pm.expect(pm.response.code).to.be.oneOf([403, 404]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenPersonal}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/citas/{{citaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "citas",
+                "{{citaId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Limpieza",
+      "item": [
+        {
+          "name": "Cancelar la cita (RN-15)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('queda CANCELADA y libera el cupo', () => pm.expect(pm.response.json().estado).to.eql('CANCELADA'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenPaciente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/citas/{{citaId}}/cancelar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "citas",
+                "{{citaId}}",
+                "cancelar"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
